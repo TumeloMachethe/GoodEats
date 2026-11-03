@@ -49,7 +49,7 @@ const MENU = [
     id: "chips",
     title: "Chips",
     note: "",
-    photo: "images/chips.jpg",
+    photo: "images/Chips.jpg",
     alt: "Loaded fries with cheese sauce and bacon",
     items: [
       { name: "Small",        price: 20, cart: "Chips (Small)" },
@@ -100,7 +100,7 @@ const MENU = [
     id: "toasties",
     title: "Toasties",
     note: "Brown or white bread",
-    photo: "images/toasties.jpg",
+    photo: "images/Toasties.jpg",
     alt: "Stacked cheese toasties",
     items: [
       { name: "Chicken Mayo",    price: 25, cart: "Toastie: Chicken Mayo" },
