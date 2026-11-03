@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your order | Good Eats | Gqeberha</title>
+<meta name="description" content="Review and send your Good Eats order.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#141414">
+<link rel="icon" href="favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="images/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="images/icons/favicon-16.png">
+<link rel="apple-touch-icon" href="images/icons/apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Good Eats">
+<meta property="og:title" content="Your order | Good Eats">
+<meta property="og:description" content="Review and send your Good Eats order.">
+<meta property="og:locale" content="en_ZA">
+<meta property="og:image" content="images/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="styles.css">
+<meta name="robots" content="noindex">
+</head>
+<body class="cat-page" data-category="cart">
+<div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+
+<header class="site-header">
+  <a href="index.html" class="brand"><img src="images/logo.png" alt="Good Eats home"></a>
+  <!-- Nav links are built from menu-data.js -->
+  <nav class="nav" aria-label="Menu categories" data-menu-nav></nav>
+  <a href="cart.html" class="btn btn-yellow">Order now</a>
+</header>
+
+<main class="cat-main" id="top">
+  <a class="cat-back" href="index.html#menu">Back to the full menu</a>
+  <section class="menu-block cart-page order-page" id="order" aria-label="Your order">
+    <div class="menu-text">
+      <h1 class="brush brush-lg">Your order</h1>
+      <noscript><p class="cart-empty">Online ordering needs JavaScript. Please order on <a href="https://wa.me/27839415837">WhatsApp: 083 941 5837</a>.</p></noscript>
+      <p id="cart-empty" class="cart-empty">Your cart is empty. Pick something from the menu below.</p>
+      <ul id="cart-items" class="cart-items" aria-live="polite"></ul>
+      <div id="cart-totals" class="cart-totals" hidden>
+        <p>Subtotal <span id="subtotal-amount">R0</span></p>
+        <p id="fee-row" hidden>Delivery <span id="fee-amount">R0</span></p>
+        <p class="grand">Total <strong id="total-amount">R0</strong></p>
+      </div>
+      <div class="cart-actions">
+        <button type="button" id="clear-btn" class="btn btn-outline" hidden>Clear cart</button>
+      </div>
+
+  <!-- >>> FORM SUBMIT: order.js listens for this form's "submit" event (search "FORM SUBMIT" in order.js) <<< -->
+  <form id="order-form" class="order-form" novalidate>
+    <label class="field"><span>Your name</span>
+      <input type="text" id="name" name="name" autocomplete="name" required></label>
+    <label class="field"><span>Phone number</span>
+      <input type="tel" id="phone" name="phone" autocomplete="tel" inputmode="tel" placeholder="083 000 0000" required></label>
+
+    <fieldset class="field choice">
+      <legend>How do you want it?</legend>
+      <label><input type="radio" name="orderType" value="delivery" checked> Delivery</label>
+      <label><input type="radio" name="orderType" value="collection"> Collection</label>
+    </fieldset>
+
+    <div id="delivery-fields">
+      <label class="field"><span>Delivery address</span>
+        <textarea id="address" name="address" rows="2" autocomplete="street-address" placeholder="House or flat number, street, suburb"></textarea></label>
+      <button type="button" id="locate-btn" class="btn btn-outline">Share my location</button>
+      <p id="location-status" class="status" aria-live="polite"></p>
+    </div>
+
+    <label class="field"><span>Notes (optional)</span>
+      <textarea id="notes" name="notes" rows="2" placeholder="Brown or white bread, no jalape&ntilde;os, and so on"></textarea></label>
+
+    <button type="submit" id="submit-btn" class="btn btn-yellow btn-block">Send order</button>
+    <button type="button" id="wa-btn" class="btn btn-outline btn-block">Send this order on WhatsApp instead</button>
+    <p id="form-status" class="status" aria-live="polite"></p>
+  </form>
+
+  <!-- Thank-you screen, shown after the order is sent -->
+  <div id="thanks" class="thanks" tabindex="-1" hidden>
+    <h3>Thank you!</h3>
+    <p>We got your order and will contact you on your phone number if we need anything.</p>
+    <pre id="thanks-summary" class="thanks-summary"></pre>
+    <div class="hero-actions">
+      <a href="index.html#menu" class="btn btn-yellow">Order again</a>
+      <a href="https://wa.me/27839415837" class="btn btn-outline" target="_blank" rel="noopener">WhatsApp us</a>
+    </div>
+  </div>
+    </div>
+  </section>
+  <section class="cat-more">
+    <p class="sub">Add something else?</p>
+    <div class="cat-pills" data-menu-more="cart"></div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <span>21 Chapel Street, Central, Gqeberha</span>
+  <a href="https://wa.me/27839415837" target="_blank" rel="noopener">WhatsApp: 083 941 5837</a>
+</footer>
+
+<script src="menu-data.js"></script>
+<script src="menu-render.js"></script>
+<script src="settings.js"></script>
+<script src="order.js"></script>
+</body>
+</html>

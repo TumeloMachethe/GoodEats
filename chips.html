@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chips | Good Eats | Gqeberha</title>
+<meta name="description" content="Chips at Good Eats, 21 Chapel Street, Central, Gqeberha. Order online.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#141414">
+<link rel="icon" href="favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="images/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="images/icons/favicon-16.png">
+<link rel="apple-touch-icon" href="images/icons/apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Good Eats">
+<meta property="og:title" content="Chips | Good Eats | Gqeberha">
+<meta property="og:description" content="Chips at Good Eats, 21 Chapel Street, Central, Gqeberha. Order online.">
+<meta property="og:locale" content="en_ZA">
+<meta property="og:image" content="images/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="cat-page" data-category="chips">
+<div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+
+<header class="site-header">
+  <a href="index.html" class="brand"><img src="images/logo.png" alt="Good Eats home"></a>
+  <!-- Nav links are built from menu-data.js -->
+  <nav class="nav" aria-label="Menu categories" data-menu-nav></nav>
+  <a href="cart.html" class="btn btn-yellow">Order now</a>
+</header>
+
+<main class="cat-main" id="top">
+  <a class="cat-back" href="index.html#menu">Back to the full menu</a>
+  <!-- The products on this page come from menu-data.js (category id: "chips"). To add or remove a product, edit menu-data.js, not this file. -->
+  <section class="menu" aria-label="Chips" data-menu-root="chips"></section>
+  <section class="cat-more">
+    <p class="sub">Hungry for something else?</p>
+    <div class="cat-pills" data-menu-more="chips"></div>
+  </section>
+</main>
+
+<a href="cart.html" id="cart-bar" class="cart-bar" hidden>
+  <span id="bar-count">0 items</span>
+  <span class="bar-cta">View order <strong id="bar-total">R0</strong></span>
+</a>
+
+<footer class="site-footer">
+  <span>21 Chapel Street, Central, Gqeberha</span>
+  <a href="https://wa.me/27839415837" target="_blank" rel="noopener">WhatsApp: 083 941 5837</a>
+</footer>
+
+<script src="menu-data.js"></script>
+<script src="menu-render.js"></script>
+<script src="cart-lite.js"></script>
+</body>
+</html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Good Eats | Good food, good mood | Gqeberha</title>
+<meta name="description" content="Chips, burgers, toasties, croissants, kota and more at Good Eats, 21 Chapel Street, Central, Gqeberha. Order online.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#141414">
+<link rel="icon" href="favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="images/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="images/icons/favicon-16.png">
+<link rel="apple-touch-icon" href="images/icons/apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Good Eats">
+<meta property="og:title" content="Good Eats | Good food, good mood | Gqeberha">
+<meta property="og:description" content="Chips, burgers, toasties, croissants, kota and more at Good Eats, 21 Chapel Street, Central, Gqeberha. Order online.">
+<meta property="og:locale" content="en_ZA">
+<meta property="og:image" content="images/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preload" as="image" href="images/logo.png">
+<link rel="stylesheet" href="styles.css">
+<script type="application/ld+json">{
+ "@context": "https://schema.org",
+ "@type": "Restaurant",
+ "name": "Good Eats",
+ "slogan": "Good food, good mood",
+ "telephone": "+27839415837",
+ "servesCuisine": [
+  "Burgers",
+  "Chips",
+  "Toasties",
+  "Croissants",
+  "Schnitzel",
+  "Magwinya"
+ ],
+ "priceRange": "R",
+ "address": {
+  "@type": "PostalAddress",
+  "streetAddress": "21 Chapel Street",
+  "addressLocality": "Central, Gqeberha",
+  "addressRegion": "Eastern Cape",
+  "addressCountry": "ZA"
+ },
+ "image": "images/og-image.jpg"
+}</script>
+</head>
+<body>
+<div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+
+<!-- ============ HEADER (sticky, Order Now always visible) ============ -->
+<header class="site-header">
+  <a href="#top" class="brand"><img src="images/logo.png" alt="Good Eats"></a>
+  <!-- Nav links are built from menu-data.js -->
+  <nav class="nav" aria-label="Menu categories" data-menu-nav></nav>
+  <a href="cart.html" class="btn btn-yellow">Order now</a>
+</header>
+
+<main id="top">
+
+<!-- ============ HERO (promo video) ============ -->
+<!-- Put your video at videos/promo.mp4 (short loop, under about 8 MB, no sound needed). If it is missing, the chalkboard hero shows instead. -->
+<section class="hero hero-video">
+  <video id="promo-video" class="promo-video" autoplay muted loop playsinline preload="metadata">
+    <source src="videos/promo.mp4" type="video/mp4">
+  </video>
+  <div class="hero-inner">
+    <img class="hero-logo" src="images/logo.png" alt="Good Eats. Good food, good mood.">
+    <p class="brush brush-lg">Opening specials</p>
+    <p class="hero-note">Fresh food, great vibes. Order online and we will get it ready.</p>
+    <div class="hero-actions">
+      <a href="cart.html" class="btn btn-yellow">Order now</a>
+      <a href="https://wa.me/27839415837" class="btn btn-outline" target="_blank" rel="noopener">WhatsApp us</a>
+    </div>
+    <p class="hero-address">21 Chapel Street, Central, Gqeberha</p>
+    <p class="hero-address" data-hours hidden></p>
+  </div>
+  <button type="button" id="video-toggle" class="video-toggle" aria-label="Pause promo video" hidden>Pause video</button>
+</section>
+
+<!-- ============ PROMO TICKER (the phrases come from TICKER in menu-data.js) ============ -->
+<div class="ticker" aria-label="Current specials">
+  <div class="ticker-track"></div>
+</div>
+
+<!-- ============ SPECIALS (the cards come from SPECIALS in menu-data.js; they use the same cart names as the menu, so the cart merges them) ============ -->
+<section class="specials" id="specials" aria-label="Opening specials">
+  <h2 class="brush">Start here</h2>
+  <div class="special-grid" id="special-grid"></div>
+</section>
+
+<!-- ============ MENU ============ -->
+<!-- The category cards are built from MENU in menu-data.js. Each category has its own page (chips.html and so on) which also reads menu-data.js. -->
+<section class="menu categories" id="menu" aria-label="Menu">
+  <h2 class="brush">Our menu</h2>
+  <div class="cat-grid" id="cat-grid"></div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section class="steps" id="how">
+  <h2 class="brush">How it works</h2>
+  <ol class="step-list">
+    <li><strong>Pick your food</strong><span>Tap Add on anything in the menu.</span></li>
+    <li><strong>Send your order</strong><span>Fill in your details and send it here, or on WhatsApp.</span></li>
+    <li><strong>Delivery or collection</strong><span>Have it brought to you, or collect at 21 Chapel Street.</span></li>
+  </ol>
+</section>
+
+<!-- ============ OWNER ============ -->
+<!-- Put the owner photo at images/owner.jpg (square or portrait, under about 300 KB). Edit the name and story, then DELETE the word "placeholder" from the class so the yellow EDIT ME badge goes away. -->
+<section class="owner" id="owner">
+  <h2 class="brush">Meet the owner</h2>
+  <div class="owner-card placeholder">
+    <div class="avatar avatar-lg"><img class="photo" src="images/owner.jpg" alt="Photo of the owner of Good Eats" loading="lazy"></div>
+    <div class="owner-text">
+      <h3>Owner name</h3>
+      <p class="role">Owner and chef</p>
+      <p>Write two or three sentences here: why you started Good Eats, what you love about feeding Gqeberha, and what customers can expect every time they order.</p>
+      <p class="sub">Good food, good mood.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TEAM ============ -->
+<!-- Photos: images/staff-1.jpg, staff-2.jpg, staff-3.jpg. To add a person, copy one whole <article class="staff-card"> block and change the photo name. Remove "placeholder" from the class once it is filled in. -->
+<section class="team" id="team">
+  <h2 class="brush">Meet the team</h2>
+  <div class="staff-grid">
+    <article class="staff-card placeholder">
+      <div class="avatar"><img class="photo" src="images/staff-1.jpg" alt="Good Eats team member" loading="lazy"></div>
+      <h3>Staff name</h3>
+      <p class="role">Role, for example Cook</p>
+    </article>
+    <article class="staff-card placeholder">
+      <div class="avatar"><img class="photo" src="images/staff-2.jpg" alt="Good Eats team member" loading="lazy"></div>
+      <h3>Staff name</h3>
+      <p class="role">Role, for example Cashier</p>
+    </article>
+    <article class="staff-card placeholder">
+      <div class="avatar"><img class="photo" src="images/staff-3.jpg" alt="Good Eats team member" loading="lazy"></div>
+      <h3>Staff name</h3>
+      <p class="role">Role, for example Delivery</p>
+    </article>
+  </div>
+</section>
+
+<!-- ============ REVIEWS ============ -->
+<!-- Paste REAL customer reviews only. Copy one <figure class="review"> block per review. Change the stars (keep 5 of the 5 star characters, filled ones first), the quote, the name and where it came from. Remove "placeholder" from the class when done. -->
+<section class="reviews" id="reviews">
+  <h2 class="brush">What people say</h2>
+  <div class="review-row">
+    <figure class="review placeholder">
+      <p class="stars" role="img" aria-label="5 out of 5 stars">&#9733;&#9733;&#9733;&#9733;&#9733;</p>
+      <blockquote>Paste a real customer review here.</blockquote>
+      <figcaption><strong>Customer name</strong><span>Google review</span></figcaption>
+    </figure>
+    <figure class="review placeholder">
+      <p class="stars" role="img" aria-label="5 out of 5 stars">&#9733;&#9733;&#9733;&#9733;&#9733;</p>
+      <blockquote>Paste a real customer review here.</blockquote>
+      <figcaption><strong>Customer name</strong><span>WhatsApp message</span></figcaption>
+    </figure>
+    <figure class="review placeholder">
+      <p class="stars" role="img" aria-label="5 out of 5 stars">&#9733;&#9733;&#9733;&#9733;&#9733;</p>
+      <blockquote>Paste a real customer review here.</blockquote>
+      <figcaption><strong>Customer name</strong><span>Facebook</span></figcaption>
+    </figure>
+  </div>
+  <div class="hero-actions review-cta">
+    <a class="btn btn-yellow" href="https://www.google.com/maps/search/?api=1&amp;query=Good+Eats+21+Chapel+Street+Gqeberha" target="_blank" rel="noopener">Leave us a review</a>
+    <a class="btn btn-outline" href="https://wa.me/27839415837?text=Hi%20Good%20Eats%2C%20here%20is%20my%20feedback%3A%20" target="_blank" rel="noopener">Send feedback on WhatsApp</a>
+  </div>
+</section>
+
+<!-- ============ FIND US ============ -->
+<section class="visit" id="visit">
+  <h2 class="brush">Find us</h2>
+  <div class="visit-grid">
+    <div class="visit-info">
+      <p class="visit-address">21 Chapel Street<br>Central, Gqeberha</p>
+      <p class="visit-hours" data-hours hidden></p>
+      <div class="hero-actions">
+        <a href="https://www.google.com/maps/dir/?api=1&amp;destination=21+Chapel+Street+Central+Gqeberha" class="btn btn-yellow" target="_blank" rel="noopener">Get directions</a>
+        <a href="https://wa.me/27839415837" class="btn btn-outline" target="_blank" rel="noopener">WhatsApp us</a>
+      </div>
+      <p class="sub">Planning a function or a big order?</p>
+      <a href="https://wa.me/27839415837?text=Hi%20Good%20Eats%2C%20I%20would%20like%20to%20ask%20about%20a%20large%20order%20or%20function.%20Date%3A%20%20Number%20of%20people%3A%20" class="btn btn-outline" target="_blank" rel="noopener">Ask about a large order</a>
+    </div>
+    <iframe class="map" title="Map showing Good Eats at 21 Chapel Street, Central, Gqeberha" src="https://www.google.com/maps?q=21+Chapel+Street+Central+Gqeberha&amp;output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FLOATING CART BAR (phones) ============ -->
+<a href="cart.html" id="cart-bar" class="cart-bar" hidden>
+  <span id="bar-count">0 items</span>
+  <span class="bar-cta">View order <strong id="bar-total">R0</strong></span>
+</a>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site-footer">
+  <span>21 Chapel Street, Central, Gqeberha</span>
+  <span data-hours hidden></span>
+  <a href="https://wa.me/27839415837" target="_blank" rel="noopener">WhatsApp: 083 941 5837</a>
+</footer>
+
+<!-- The MAKE WEBHOOK URL is set at the top of script.js -->
+<script src="settings.js"></script>
+<script src="menu-data.js"></script>
+<script src="menu-render.js"></script>
+<script src="cart-lite.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
