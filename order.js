@@ -15,6 +15,10 @@
 const WEB3FORMS_ACCESS_KEY = "334d3ae4-df06-4190-879c-748eb6d3878c";
 const WEB3FORMS_URL = "https://api.web3forms.com/submit";
 
+/* Staff app (Online Orders tab). Orders are added to this Firebase database.
+   Customers can only ADD an order here, never read or change one (see the rules). */
+const ONLINE_ORDERS_URL = "https://restaurant-order-a7eaf-default-rtdb.europe-west1.firebasedatabase.app/onlineOrders.json";
+
 /* ---------- Helpers ---------- */
 const $ = (id) => document.getElementById(id);
 const rand = (n) => "R" + n;
@@ -258,6 +262,21 @@ $("order-form").addEventListener("submit", async (event) => {
     message: payload.summaryText,
   };
 
+  // Staff app: only what the Online Orders tab needs (kept inside the database rules' limits)
+  const fbOrder = {
+    name: payload.name.slice(0, 99),
+    phone: payload.phone.slice(0, 29),
+    orderType: payload.orderType,
+    address: payload.address.slice(0, 299),
+    notes: payload.notes.slice(0, 499),
+    mapsLink: String(payload.location.mapsLink || "").slice(0, 299),
+    items: payload.items.map((i) => ({ name: String(i.name).slice(0, 99), price: i.price, qty: i.qty })),
+    deliveryFee: payload.deliveryFee,
+    total: payload.total,
+    status: "new",
+    createdAt: { ".sv": "timestamp" },
+  };
+
   const sendMake = async () => {                                // <<< MAKE WEBHOOK is called here
     const r = await fetch(MAKE_WEBHOOK_URL, {
       method: "POST",
@@ -276,8 +295,17 @@ $("order-form").addEventListener("submit", async (event) => {
     if (!r.ok || !result.success) throw new Error("Web3Forms answered " + r.status + ": " + (result.message || ""));
   };
 
+  const sendStaffApp = async () => {                            // <<< STAFF APP (Firebase) is called here
+    const r = await fetch(ONLINE_ORDERS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(fbOrder),
+    });
+    if (!r.ok) throw new Error("Staff app answered " + r.status);
+  };
+
   try {
-    const jobs = [];
+    const jobs = [sendStaffApp()];
     if (makeOn) jobs.push(sendMake());
     if (web3On) jobs.push(sendWeb3());
     const results = await Promise.allSettled(jobs);
