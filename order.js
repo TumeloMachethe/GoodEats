@@ -15,6 +15,12 @@
 const WEB3FORMS_ACCESS_KEY = "334d3ae4-df06-4190-879c-748eb6d3878c";
 const WEB3FORMS_URL = "https://api.web3forms.com/submit";
 
+/* ##################################################################
+   >>>>>>>>>>>>>>>>>>>>>>>>  FIREBASE DATABASE  <<<<<<<<<<<<<<<<<<<<<<
+   Orders are saved here so the staff app can show them (Online orders tab).
+   ################################################################## */
+const FIREBASE_DB_URL = "https://restaurant-order-a7eaf-default-rtdb.europe-west1.firebasedatabase.app";
+
 /* ---------- Helpers ---------- */
 const $ = (id) => document.getElementById(id);
 const rand = (n) => "R" + n;
@@ -269,6 +275,27 @@ $("order-form").addEventListener("submit", async (event) => {
     });
     if (!r.ok) throw new Error("Make answered " + r.status);
   };
+  const sendFirebase = async () => {                            // <<< FIREBASE (staff app) is written here
+    // Only the fields the database rules allow. status must be "new", createdAt a number.
+    const order = {
+      name: payload.name.slice(0, 99),
+      phone: payload.phone.slice(0, 29),
+      orderType: payload.orderType,
+      address: payload.address.slice(0, 299),
+      notes: payload.notes.slice(0, 499),
+      mapsLink: String(payload.location.mapsLink || "").slice(0, 299),
+      deliveryFee: Number(payload.deliveryFee) || 0,
+      total: Number(payload.total) || 0,
+      items: payload.items.map((i) => ({ name: String(i.name).slice(0, 99), price: Number(i.price), qty: Number(i.qty) })),
+      status: "new",
+      createdAt: Date.now(),
+    };
+    const r = await fetch(FIREBASE_DB_URL + "/onlineOrders.json", {
+      method: "POST",
+      body: JSON.stringify(order),
+    });
+    if (!r.ok) throw new Error("Firebase answered " + r.status + ": " + (await r.text()).slice(0, 200));
+  };
   const sendWeb3 = async () => {                                // <<< WEB3FORMS is called here
     const r = await fetch(WEB3FORMS_URL, {
       method: "POST",
@@ -281,6 +308,7 @@ $("order-form").addEventListener("submit", async (event) => {
 
   try {
     const jobs = [];
+    jobs.push(sendFirebase());
     if (makeOn) jobs.push(sendMake());
     if (web3On) jobs.push(sendWeb3());
     const results = await Promise.allSettled(jobs);
