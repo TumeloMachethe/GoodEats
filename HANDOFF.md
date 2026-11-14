@@ -89,3 +89,8 @@ Background `#141414`, cards `#1d1d1c`, accent yellow `#ffc72c`, text `#f6f2e8`. 
 - Every "Order now" button, the header button and the floating cart bar now go to `cart.html`. The home page and category pages use `cart-lite.js` for the Add buttons, the cart count and the cart bar.
 - "Order again" on the thank-you message goes back to the menu.
 - Same saved cart as before (`localStorage` key `goodeats-cart`), so carts carry across pages.
+
+## Sold-out sync
+- `soldout.js` (loaded after `menu-render.js` on every page that has the menu) reads `soldoutPublic.json` from the Firebase database once a minute. Dishes the staff app marks sold out get a disabled "Sold out" button, and `validate()` in `order.js` / `script.js` refuses an order that still has one.
+- Dishes are matched by name, not by id: the staff app and `soldout.js` turn a name into the same key ("Chips (Small)" = "Small Chips"). If you rename a dish on only one side it will stop matching.
+- If the list cannot load, nothing is blocked.

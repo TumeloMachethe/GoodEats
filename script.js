@@ -198,6 +198,8 @@ function buildPayload() {
 
 function validate() {
   if (cart.size === 0) return "Your order is empty. Tap Add on a menu item first.";
+  const soldProblem = window.GE_soldOutProblem ? window.GE_soldOutProblem(cart.keys()) : "";   // sold-out check (soldout.js)
+  if (soldProblem) return soldProblem;
   if (!$("name").value.trim()) return "Please enter your name.";
   if ($("phone").value.replace(/\D/g, "").length < 10) return "Please enter a phone number with 10 digits.";
   if (orderType() === "delivery" && !$("address").value.trim()) return "Please enter your delivery address.";
@@ -210,6 +212,12 @@ $("wa-btn").addEventListener("click", () => {
   if (cart.size === 0) {
     status.className = "status error";
     status.textContent = "Your order is empty. Tap Add on a menu item first.";
+    return;
+  }
+  const soldProblem = window.GE_soldOutProblem ? window.GE_soldOutProblem(cart.keys()) : "";
+  if (soldProblem) {
+    status.className = "status error";
+    status.textContent = soldProblem;
     return;
   }
   const url = "https://wa.me/" + WHATSAPP_INTL + "?text=" + encodeURIComponent(buildPayload().summaryText);
@@ -240,6 +248,7 @@ $("order-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   const status = $("form-status");
   const button = $("submit-btn");
+  if (window.GE_refreshSoldOut) await window.GE_refreshSoldOut();   // get the newest sold-out list first
 
   const problem = validate();
   if (problem) {
