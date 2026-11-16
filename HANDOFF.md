@@ -94,3 +94,11 @@ Background `#141414`, cards `#1d1d1c`, accent yellow `#ffc72c`, text `#f6f2e8`. 
 - `soldout.js` (loaded after `menu-render.js` on every page that has the menu) reads `soldoutPublic.json` from the Firebase database once a minute. Dishes the staff app marks sold out get a disabled "Sold out" button, and `validate()` in `order.js` / `script.js` refuses an order that still has one.
 - Dishes are matched by name, not by id: the staff app and `soldout.js` turn a name into the same key ("Chips (Small)" = "Small Chips"). If you rename a dish on only one side it will stop matching.
 - If the list cannot load, nothing is blocked.
+
+## Part 11: one script (site.js)
+- The small scripts were merged into **`site.js`**: light/dark switch (was `theme.js`), menu builder (`menu-render.js`), photo cards, pop-up and search (`menu-ui.js`), cart on menu pages (`cart-lite.js`) and home page effects (`home-effects.js`). `script.js` was not used by any page and was deleted. Anywhere older notes above mention those files, the code is now in `site.js`.
+- Kept as separate files on purpose: `menu-data.js` (the menu), `soldout.js`, `order.js`, `settings.js`.
+- Load order: `settings.js` (home and cart only), `menu-data.js`, `site.js`, `soldout.js`, and `order.js` on cart.html. Pages with no menu (privacy, terms, 404) load only `site.js`; each section of it runs only on the pages that need it.
+- The saved theme is applied by one inline line in each page's `<head>` so there is no flash of the wrong colours.
+- Opening hours now show on the home page again (they were set by the unused `script.js`).
+- Drinks (Coke, Fanta Orange, Sprite in 4 sizes, Water) are in `menu-data.js` and in the staff app, with identical names so sold-out sync and online-order matching work.

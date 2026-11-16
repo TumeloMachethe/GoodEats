@@ -33,7 +33,8 @@ try {
 } catch (e) {}
 function saveCart() { try { localStorage.setItem(CART_KEY, JSON.stringify([...cart])); } catch (e) {} }
 let geo = { lat: null, lng: null, mapsLink: "" };   // (not named "location": that clashes with window.location)
-let thanksShowing = false;                           // true after an order was sent
+let thanksShowing = false;
+let lastOrder = null;                           // true after an order was sent
 
 function orderType() {
   return document.querySelector('input[name="orderType"]:checked').value;
@@ -207,8 +208,10 @@ $("wa-btn").addEventListener("click", () => {
 });
 
 /* ---------- Thank-you screen ---------- */
-function showThanks(summary) {
+function showThanks(summary, p) {
   thanksShowing = true;
+  lastOrder = p || null;
+  if (p && $("thanks-title")) $("thanks-title").textContent = "Thank you, " + p.name.split(" ")[0] + "!";
   $("thanks-summary").textContent = summary;
   $("order-form").hidden = true;
   $("cart-empty").hidden = true;
@@ -322,7 +325,7 @@ $("order-form").addEventListener("submit", async (event) => {
     geo = { lat: null, lng: null, mapsLink: "" };
     thanksShowing = true;
     renderCart();
-    showThanks(payload.summaryText);
+    showThanks(payload.summaryText, payload);
   } catch (err) {
     console.error(err);
     status.className = "status error";
@@ -335,16 +338,59 @@ $("order-form").addEventListener("submit", async (event) => {
 
 renderCart();
 
-/* ---------- Scroll bar and shrinking header (same as the other pages) ---------- */
+/* ---------- Shrinking header (same as the other pages) ---------- */
 (function () {
   const header = document.querySelector(".site-header");
-  const bar = $("scroll-progress");
   window.addEventListener("scroll", () => {
-    const max = document.documentElement.scrollHeight - window.innerHeight;
-    bar.style.transform = "scaleX(" + (max > 0 ? window.scrollY / max : 0) + ")";
     header.classList.toggle("scrolled", window.scrollY > 40);
   }, { passive: true });
 })();
 
 /* Coming back with the Back button: reload so the cart is current */
 window.addEventListener("pageshow", (e) => { if (e.persisted) window.location.reload(); });
+
+
+/* ---------- Download the order slip (PDF, no order number: the store finds the order by name) ---------- */
+async function logoData() {
+  try {
+    const b = await (await fetch("images/logo.png")).blob();
+    return await new Promise((res) => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(b); });
+  } catch (e) { return null; }
+}
+$("slip-btn").addEventListener("click", async () => {
+  const p = lastOrder;
+  if (!p || !window.jspdf) { alert("The slip could not be made. Please take a screenshot of this screen instead."); return; }
+  const lines = p.items.length, h = 150 + lines * 7 + (p.address ? 14 : 0);
+  const doc = new window.jspdf.jsPDF({ unit: "mm", format: [80, h] });
+  const mid = 40; let y = 8;
+  const logo = await logoData();
+  if (logo) { try { doc.addImage(logo, "PNG", 25, y, 30, 30); y += 34; } catch (e) { y += 4; } }
+  doc.setFont("courier", "bold"); doc.setFontSize(14); doc.text("GOOD EATS", mid, y, { align: "center" }); y += 5;
+  doc.setFont("courier", "normal"); doc.setFontSize(8);
+  doc.text("21 Chapel Street, Central, Gqeberha", mid, y, { align: "center" }); y += 4;
+  doc.text("WhatsApp " + WHATSAPP_NUMBER, mid, y, { align: "center" }); y += 5;
+  const dash = () => { doc.text("-".repeat(38), mid, y, { align: "center" }); y += 5; };
+  dash();
+  doc.setFont("courier", "bold"); doc.setFontSize(9); doc.text("ORDER FOR", mid, y, { align: "center" }); y += 6;
+  doc.setFontSize(15); doc.text(p.name.toUpperCase().slice(0, 22), mid, y, { align: "center" }); y += 6;
+  doc.setFont("courier", "normal"); doc.setFontSize(8);
+  doc.text(new Date(p.submittedAt).toLocaleString("en-ZA"), mid, y, { align: "center" }); y += 4;
+  doc.text(p.orderType === "delivery" ? "DELIVERY" : "COLLECTION", mid, y, { align: "center" }); y += 5;
+  dash();
+  p.items.forEach((i) => {
+    const t = i.qty + " x " + i.name; const wrapped = doc.splitTextToSize(t, 52);
+    doc.text(wrapped, 6, y); doc.text(rand(i.price * i.qty), 74, y, { align: "right" }); y += 4 * wrapped.length + 1;
+  });
+  dash();
+  doc.text("Subtotal", 6, y); doc.text(rand(p.subtotal), 74, y, { align: "right" }); y += 4;
+  if (p.deliveryFee) { doc.text("Delivery", 6, y); doc.text(rand(p.deliveryFee), 74, y, { align: "right" }); y += 4; }
+  doc.setFont("courier", "bold"); doc.setFontSize(11);
+  doc.text("TOTAL", 6, y + 2); doc.text(rand(p.total), 74, y + 2, { align: "right" }); y += 8;
+  doc.setFont("courier", "normal"); doc.setFontSize(8);
+  if (p.address) { const a = doc.splitTextToSize("Address: " + p.address, 68); doc.text(a, 6, y); y += 4 * a.length + 2; }
+  if (p.notes) { const n = doc.splitTextToSize("Notes: " + p.notes, 68); doc.text(n, 6, y); y += 4 * n.length + 2; }
+  dash();
+  doc.text("Thank you for ordering!", mid, y, { align: "center" }); y += 4;
+  doc.text("Good food, good mood.", mid, y, { align: "center" });
+  doc.save("Good-Eats-slip-" + p.name.replace(/[^a-z0-9]+/gi, "-") + ".pdf");
+});

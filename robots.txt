@@ -1,2 +1,3 @@
 User-agent: *
 Allow: /
+Sitemap: https://goodeatspe.co.za/sitemap.xml

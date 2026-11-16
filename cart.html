@@ -21,11 +21,11 @@
 <meta property="og:locale" content="en_ZA">
 <meta property="og:image" content="images/og-image.jpg">
 <meta name="twitter:card" content="summary_large_image">
+<script>try{document.documentElement.setAttribute("data-theme",localStorage.getItem("goodeats-theme")==="light"?"light":"dark")}catch(e){document.documentElement.setAttribute("data-theme","dark")}</script>
 <link rel="stylesheet" href="styles.css">
 <meta name="robots" content="noindex">
 </head>
 <body class="cat-page" data-category="cart">
-<div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
 
 <header class="site-header">
   <a href="index.html" class="brand"><img src="images/logo.png" alt="Good Eats home"></a>
@@ -81,8 +81,11 @@
 
   <!-- Thank-you screen, shown after the order is sent -->
   <div id="thanks" class="thanks" tabindex="-1" hidden>
-    <h3>Thank you!</h3>
+    <svg class="thanks-anim" viewBox="0 0 70 70" aria-hidden="true"><circle cx="35" cy="35" r="30"/><path d="M21 36 l10 10 l19 -22"/></svg><div class="confetti" aria-hidden="true"><i style="--x:99px;--y:93px"></i><i style="--x:-105px;--y:80px"></i><i style="--x:-10px;--y:49px"></i><i style="--x:111px;--y:73px"></i><i style="--x:94px;--y:64px"></i><i style="--x:-125px;--y:57px"></i><i style="--x:16px;--y:69px"></i><i style="--x:84px;--y:56px"></i><i style="--x:-63px;--y:33px"></i><i style="--x:81px;--y:71px"></i><i style="--x:25px;--y:39px"></i><i style="--x:-63px;--y:45px"></i><i style="--x:-19px;--y:89px"></i><i style="--x:-107px;--y:89px"></i><i style="--x:-118px;--y:82px"></i><i style="--x:73px;--y:92px"></i></div>
+    <h3 id="thanks-title">Thank you!</h3>
     <p>We got your order and will contact you on your phone number if we need anything.</p>
+    <p class="slip-note">Download your order slip and show it at the store. We find your order by your name.</p>
+    <button type="button" id="slip-btn" class="btn btn-yellow btn-block">Download order slip (PDF)</button>
     <pre id="thanks-summary" class="thanks-summary"></pre>
     <div class="hero-actions">
       <a href="index.html#menu" class="btn btn-yellow">Order again</a>
@@ -100,12 +103,24 @@
 <footer class="site-footer">
   <span>21 Chapel Street, Central, Gqeberha</span>
   <a href="https://wa.me/27839415837" target="_blank" rel="noopener">WhatsApp: 083 941 5837</a>
+
+  <div class="footer-links">
+    <!-- SOCIAL LINKS: replace each YOUR-PAGE with the real page name once the owner confirms -->
+    <a href="https://www.facebook.com/YOUR-PAGE" target="_blank" rel="noopener" aria-label="Good Eats on Facebook">Facebook</a>
+    <a href="https://www.instagram.com/YOUR-PAGE" target="_blank" rel="noopener" aria-label="Good Eats on Instagram">Instagram</a>
+    <a href="https://www.tiktok.com/@YOUR-PAGE" target="_blank" rel="noopener" aria-label="Good Eats on TikTok">TikTok</a>
+  </div>
+  <div class="footer-links footer-legal">
+    <a href="privacy.html">Privacy Policy</a>
+    <a href="terms.html">Terms &amp; Conditions</a>
+  </div>
 </footer>
 
 <script src="menu-data.js"></script>
-<script src="menu-render.js"></script>
+<script src="site.js"></script>
 <script src="soldout.js"></script>
 <script src="settings.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <script src="order.js"></script>
 </body>
 </html>
