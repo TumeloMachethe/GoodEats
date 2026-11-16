@@ -16,16 +16,16 @@
      5. Home page effects (video, scroll reveal, nav highlight, opening hours)
    ==================================================================== */
 
-/* ---------- 1. LIGHT / DARK SWITCH (dark is the default; the choice is remembered) ---------- */
+/* ---------- 1. LIGHT / DARK SWITCH (light is the default; the choice is remembered) ---------- */
 (function () {
   var KEY = "goodeats-theme", root = document.documentElement;
   function saved() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
   function apply(t) {
     root.setAttribute("data-theme", t);
     var m = document.querySelector('meta[name="theme-color"]');
-    if (m) m.setAttribute("content", t === "light" ? "#faf6ec" : "#141414");
+    if (m) m.setAttribute("content", t === "dark" ? "#141414" : "#faf6ec");
   }
-  apply(saved() === "light" ? "light" : "dark");
+  apply(saved() === "dark" ? "dark" : "light");
 
   document.addEventListener("DOMContentLoaded", function () {
     var header = document.querySelector(".site-header");

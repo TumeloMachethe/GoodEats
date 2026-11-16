@@ -71,7 +71,7 @@ const MENU = [
       { name: "Russian & Chips", price: 25, img: "images/items/savoury-russian-and-chips.jpg" },
       { name: "Fish & Chips",    price: 50, img: "images/items/savoury-fish-and-chips.jpg" },
       { name: "Wings & Chips",   price: 50, img: "images/items/wings.jpeg" },
-      { name: "Kota",            price: 50, img: "images/items/kota.jpeg" },
+      { name: "Kota",            price: 50, img: "images/items/Kota.jpeg" },
     ],
   },
   {
