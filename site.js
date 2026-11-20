@@ -10,10 +10,12 @@
    Each section below only runs on the pages that need it, so one file is safe everywhere.
    Sections:
      1. Light / dark switch
-     2. Menu builder (reads menu-data.js: nav, category pages, cards, specials, combos, ticker)
+     2. Menu builder (reads menu-data.js: nav, category pages, cards, combos)
      3. Easy-order layer (photo cards, pop-up sheet, search, "add a drink?")
      4. Cart on menu pages (Add buttons, cart bar, shrinking header)
-     5. Home page effects (video, scroll reveal, nav highlight, opening hours)
+     5. Home page effects (scroll reveal, nav highlight, opening hours)
+     6. Hero video, page loader
+     7. Google review strip under the logo (+ Featurable back-up)
    ==================================================================== */
 
 /* ---------- 1. LIGHT / DARK SWITCH (light is the default; the choice is remembered) ---------- */
@@ -23,7 +25,7 @@
   function apply(t) {
     root.setAttribute("data-theme", t);
     var m = document.querySelector('meta[name="theme-color"]');
-    if (m) m.setAttribute("content", t === "dark" ? "#141414" : "#faf6ec");
+    if (m) m.setAttribute("content", t === "dark" ? "#181613" : "#faf8f4");
   }
   apply(saved() === "dark" ? "dark" : "light");
 
@@ -57,7 +59,7 @@
 /* ---------- 2. MENU BUILDER ---------- */
 (function () {
   "use strict";
-  if (!document.querySelector("[data-menu-root], [data-menu-nav], [data-menu-more], #cat-grid, #special-grid, #combo-grid, .ticker-track")) return;
+  if (!document.querySelector("[data-menu-root], [data-menu-nav], [data-menu-more], #cat-grid, #special-grid, #combo-grid")) return;
 
   /* ---------- Small helpers ---------- */
 
@@ -147,9 +149,6 @@
   /* ---------- 1. Navigation links in the header ---------- */
   document.querySelectorAll("[data-menu-nav]").forEach((nav) => {
     const current = document.body.dataset.category;
-    const spec = el("a", "", "Popular");
-    spec.href = homePrefix + "#specials";
-    nav.appendChild(spec);
     if (typeof COMBOS !== "undefined" && COMBOS.length) { const cb = el("a", "", "Combos"); cb.href = homePrefix + "#combos"; nav.appendChild(cb); }
     MENU.forEach((cat) => {
       const a = el("a", "", cat.title);
@@ -174,7 +173,7 @@
 
     const block = el("article", "menu-block");
     const text = el("div", "menu-text");
-    text.appendChild(el("h1", "brush brush-lg", cat.title));
+    text.appendChild(el("h1", "page-title", cat.title));
     if (cat.note) text.appendChild(el("p", "sub", cat.note));
 
     const list = el("ul", "items");
@@ -218,32 +217,6 @@
     }));
   }
 
-  /* ---------- 5. "Popular right now" specials ---------- */
-  const specials = document.getElementById("special-grid");
-  if (specials) {
-    const cards = [];
-    SPECIALS.forEach((s) => {
-      const item = findItem(s.item);
-      if (!item) {
-        // The product was removed from the menu, so its special is skipped
-        console.warn('Specials: "' + s.item + '" is not on the menu any more, so that special is hidden.');
-        return;
-      }
-      const card = el("article", "special");
-      card.append(
-        el("p", "special-price", money(item.price)),
-        el("h3", "", s.title || item.name),
-        el("p", "", s.text || ""),
-        addButton(item)
-      );
-      cards.push(card);
-    });
-    specials.replaceChildren(...cards);
-    // Hide the whole "Popular right now" section if there are no specials
-    const section = document.getElementById("specials");
-    if (section) section.hidden = cards.length === 0;
-  }
-
   /* ---------- 5b. Combos: photo cards that open a pop-up ---------- */
   const comboGrid = document.getElementById("combo-grid");
   if (comboGrid && typeof COMBOS !== "undefined") {
@@ -263,7 +236,7 @@
         c.items.forEach((t) => ul.appendChild(el("li", "", t)));
         sh.appendChild(ul);
       } else if (c.text) sh.appendChild(el("p", "", c.text));
-      const add = el("button", "btn btn-yellow btn-block", "Add combo \u00b7 " + money(c.price)); add.type = "button";
+      const add = el("button", "btn btn-primary btn-block", "Add combo \u00b7 " + money(c.price)); add.type = "button";
       add.onclick = () => {
         if (window.GE_addToCart) window.GE_addToCart("Combo: " + c.title, c.price, 1);
         add.textContent = "Added \u2713"; setTimeout(close, 700);
@@ -285,23 +258,6 @@
     comboGrid.replaceChildren(...cards);
     const cs = document.getElementById("combos");
     if (cs) cs.hidden = cards.length === 0;
-  }
-
-  /* ---------- 6. The scrolling ticker ---------- */
-  const track = document.querySelector(".ticker-track");
-  if (track && typeof TICKER !== "undefined") {
-    const spans = [];
-    // Two copies make the scroll loop without a gap. The second copy is hidden from screen readers.
-    [false, true].forEach((isCopy) => {
-      TICKER.forEach((phrase) => {
-        const s = el("span", "", phrase);
-        if (isCopy) s.setAttribute("aria-hidden", "true");
-        spans.push(s);
-      });
-    });
-    track.replaceChildren(...spans);
-    const ticker = track.closest(".ticker");
-    if (ticker) ticker.hidden = TICKER.length === 0;
   }
 })();
 
@@ -380,7 +336,7 @@
     let size = item.sizes ? item.sizes[0] : null, choice = null, qty = 1; const extras = new Set();
     const body = el("div", "sheet-body"); sh.appendChild(body);
     const total = () => ((size ? size.price : item.price) + [...extras].reduce((a, e) => a + e.price, 0)) * qty;
-    const addBtn = el("button", "btn btn-yellow btn-block"); addBtn.type = "button";
+    const addBtn = el("button", "btn btn-primary btn-block"); addBtn.type = "button";
     const refresh = () => (addBtn.textContent = "Add to order · " + R(total()));
     const group = (title, req) => { const g = el("fieldset", "sgroup"); g.appendChild(el("legend", "", title + (req ? "  (required)" : ""))); body.appendChild(g); return g; };
     if (item.sizes) {
@@ -405,20 +361,63 @@
       const opts = [choice, ...[...extras].map((e) => e.name)].filter(Boolean);
       const unit = total() / qty; if (opts.length) name += " (" + opts.join(", ") + ")";
       if (window.GE_addToCart) window.GE_addToCart(name, unit, qty);
-      if (cat.id !== "drinks" && typeof UPSELL_DRINKS !== "undefined") upsell(sh, close); else close();
+      if (typeof UPSELL_BOXES !== "undefined" && !UPSELL_BOXES.some((u) => u.id === cat.id)) upsell(sh, close); else close();
     };
     document.body.appendChild(back);
   }
 
-  /* ---- "Add a drink?" after adding food ---- */
+  /* ---- "Would you like to add a drink?" after adding any item ----
+     Small category boxes (photo, name, "from" price). Tap one to see its flavours and sizes. ---- */
   function upsell(sh, close) {
-    sh.replaceChildren(); const x = el("button", "sheet-x", "×"); x.type = "button"; x.onclick = close;
-    sh.append(x, el("div", "tick", "✓"), el("h3", "", "Added to your order"), el("p", "sub", "Add a cold drink?"));
-    const row = el("div", "upsell");
-    UPSELL_DRINKS.forEach((d) => { const b = el("button", "pill", d.label + " " + R(d.price)); b.type = "button";
-      b.onclick = () => { window.GE_addToCart && window.GE_addToCart(d.cart, d.price, 1); b.textContent = "Added ✓"; b.disabled = true; }; row.appendChild(b); });
-    const done = el("button", "btn btn-yellow btn-block", "Done"); done.type = "button"; done.onclick = close;
-    sh.append(row, done);
+    const x = el("button", "sheet-x", "×"); x.type = "button"; x.setAttribute("aria-label", "Close"); x.onclick = close;
+    const added = new Set();                       // drinks added in this pop-up (so the button shows Added)
+    const fromPrice = (c) => Math.min(...c.items.map((i) => i.price));
+
+    function showBoxes() {
+      sh.replaceChildren();
+      const grid = el("div", "ugrid");
+      UPSELL_BOXES.forEach((u) => {
+        const c = MENU.find((m) => m.id === u.id);
+        if (!c || !c.items.length) return;
+        const b = el("button", "ubox"); b.type = "button";
+        b.setAttribute("aria-label", u.label + ", from " + R(fromPrice(c)));
+        if (u.img) { const im = el("img", "ubox-bg"); im.src = u.img; im.alt = ""; im.loading = "lazy"; im.addEventListener("error", () => im.remove()); b.appendChild(im); }
+        b.append(el("strong", "ubox-name", u.label), el("span", "ubox-from", "from " + R(fromPrice(c))));
+        b.onclick = () => showCategory(u, c);
+        grid.appendChild(b);
+      });
+      const done = el("button", "btn btn-primary btn-block", "No thanks, continue"); done.type = "button"; done.onclick = close;
+      sh.append(x, el("div", "tick", "✓"), el("h3", "", "Added to your order"), el("p", "sub", "Would you like to add a drink?"), grid, done);
+    }
+
+    function showCategory(u, c) {
+      sh.replaceChildren();
+      const back = el("button", "ubackbtn", "← All drinks"); back.type = "button"; back.onclick = showBoxes;
+      const list = el("div", "ulist");
+      c.items.forEach((item) => {
+        const row = el("div", "urow");
+        row.appendChild(el("span", "uname", item.name));
+        const sizes = el("div", "usizes");
+        (item.sizes || [{ label: "", price: item.price, cart: cartOf(item) }]).forEach((s) => {
+          const name = s.cart || item.name + " (" + s.label + ")";
+          const b = el("button", "pill", (s.label ? s.label + " " : "") + R(s.price)); b.type = "button";
+          if (added.has(name)) { b.textContent = "Added ✓"; }
+          b.onclick = () => {
+            const bad = window.GE_soldOutProblem ? window.GE_soldOutProblem([name]) : "";
+            if (bad) { msg.className = "status error"; msg.textContent = bad; return; }
+            msg.textContent = "";
+            if (window.GE_addToCart) window.GE_addToCart(name, s.price, 1);
+            added.add(name); b.textContent = "Added ✓";
+          };
+          sizes.appendChild(b);
+        });
+        row.appendChild(sizes); list.appendChild(row);
+      });
+      const msg = el("p", "status");
+      const done = el("button", "btn btn-primary btn-block", "Done"); done.type = "button"; done.onclick = close;
+      sh.append(x, el("h3", "", u.label), back, list, msg, done);
+    }
+    showBoxes();
   }
 })();
 
@@ -439,7 +438,7 @@
   function render() {
     let n = 0, t = 0;
     cart.forEach((i) => { n += i.qty; t += i.price * i.qty; });
-    document.querySelector(".site-header .btn-yellow").textContent = n ? "Order now (" + n + ")" : "Order now";
+    document.querySelector(".site-header .btn-primary").textContent = n ? "Order now (" + n + ")" : "Order now";
     $("cart-bar").hidden = n === 0;
     $("bar-count").textContent = n + (n === 1 ? " item" : " items");
     $("bar-total").textContent = "R" + t;
@@ -487,22 +486,10 @@
   if (!document.getElementById("cat-grid")) return;   // home page only
   const $ = (id) => document.getElementById(id);
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const video = $("promo-video");
-  const toggle = $("video-toggle");
-
-  /* Video parallax (the shrinking header is in section 4) */
-  let ticking = false;
-  function onScroll() {
-    const y = window.scrollY;
-    if (video && !reduce && y < window.innerHeight) video.style.transform = "translateY(" + y * 0.25 + "px)";
-    ticking = false;
-  }
-  window.addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
-  onScroll();
 
   /* Reveal sections as they scroll into view */
   document.documentElement.classList.add("js");
-  const targets = document.querySelectorAll(".cat-card, .special, .step-list li, .visit-grid, .order > *:not(form), .owner-card, .staff-card, .review, .review-cta");
+  const targets = document.querySelectorAll(".cat-card, .combo-card, .visit-grid, .staff-card");
   targets.forEach((el) => el.classList.add("reveal"));
   if ("IntersectionObserver" in window) {
     const io = new IntersectionObserver((entries) => {
@@ -527,37 +514,200 @@
     }, { rootMargin: "-40% 0px -55% 0px" });
     links.forEach((_, id) => { const s = document.getElementById(id); if (s) spy.observe(s); });
   }
+})();
 
-  /* Promo video: hide it if the file is missing, offer pause, respect reduced motion */
-  if (video) {
-    const source = video.querySelector("source");
-    const noVideo = () => { video.hidden = true; if (toggle) toggle.hidden = true; };
-    source.addEventListener("error", noVideo);
-    video.addEventListener("error", noVideo);
-    video.addEventListener("loadeddata", () => { if (toggle) toggle.hidden = false; });
-    if (reduce) video.removeAttribute("autoplay");
-    /* Text comes in a few seconds after the video starts, so people see the food first */
-    const hero = video.closest(".hero-video");
-    const TEXT_DELAY = 4000; /* milliseconds: change this to show the text sooner or later */
-    let textTimer = null, backupTimer = null;
-    const showText = () => { clearTimeout(textTimer); clearTimeout(backupTimer); hero.classList.add("text-in"); };
-    if (reduce) showText();
-    else {
-      video.addEventListener("playing", () => { if (!textTimer) textTimer = setTimeout(showText, TEXT_DELAY); }, { once: true });
-      backupTimer = setTimeout(showText, TEXT_DELAY + 3000); /* backup if the video never starts */
-    }
-    source.addEventListener("error", showText);
-    video.addEventListener("error", showText);
-    if (toggle) toggle.addEventListener("click", () => {
-      if (video.paused) { video.play(); toggle.textContent = "Pause video"; toggle.setAttribute("aria-label", "Pause promo video"); }
-      else { video.pause(); toggle.textContent = "Play video"; toggle.setAttribute("aria-label", "Play promo video"); }
-    });
+/* Opening hours and free delivery on the home page (set OPENING_HOURS and FREE_DELIVERY_AREAS in settings.js) */
+(function () {
+  if (typeof OPENING_HOURS !== "undefined" && OPENING_HOURS) {
+    document.querySelectorAll("[data-hours]").forEach((el) => { el.textContent = "Open: " + OPENING_HOURS; el.hidden = false; });
+  }
+  if (typeof FREE_DELIVERY_AREAS !== "undefined" && FREE_DELIVERY_AREAS.length) {
+    const list = FREE_DELIVERY_AREAS.length > 1
+      ? FREE_DELIVERY_AREAS.slice(0, -1).join(", ") + " and " + FREE_DELIVERY_AREAS[FREE_DELIVERY_AREAS.length - 1]
+      : FREE_DELIVERY_AREAS[0];
+    document.querySelectorAll("[data-free-delivery]").forEach((el) => { el.textContent = "Free delivery to " + list; el.hidden = false; });
   }
 })();
 
-/* Opening hours on the home page (set OPENING_HOURS in settings.js) */
+
+/* ---------- 6. HERO VIDEO AND PAGE LOADER (home page only) ----------
+   The hero shows a still photo; a short silent video fades in on top once it can play.
+   The video is skipped for visitors who asked for reduced motion or Data Saver, or are on a very slow
+   connection. The loader hides the moment the page, the hero photo and the first video frame are ready,
+   or after 3.5 seconds at most (a 4.5 s failsafe in the page head covers the case where this file fails). */
 (function () {
-  if (typeof OPENING_HOURS === "undefined" || !OPENING_HOURS) return;
-  document.querySelectorAll("[data-hours]").forEach((el) => { el.textContent = "Open: " + OPENING_HOURS; el.hidden = false; });
+  const root = document.documentElement;
+  const hero = document.querySelector(".hero-media");
+  const loader = document.getElementById("page-loader");
+  if (!hero) { root.classList.remove("is-loading"); return; }
+
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const conn = navigator.connection || {};
+  const lite = conn.saveData === true || /(^|-)2g$/.test(conn.effectiveType || "");
+  const video = hero.querySelector("video");
+  const still = hero.querySelector("img");
+
+  let done = false;
+  function finish() {
+    if (done) return;
+    done = true;
+    if (loader) {
+      loader.classList.add("is-done");
+      setTimeout(() => root.classList.remove("is-loading"), 320);
+    } else {
+      root.classList.remove("is-loading");
+    }
+  }
+  const ready = [];
+
+  // 1. the page itself
+  ready.push(new Promise((res) => {
+    if (document.readyState === "complete") res(); else window.addEventListener("load", res, { once: true });
+  }));
+
+  // 2. the hero photo
+  if (still) ready.push(new Promise((res) => {
+    if (still.complete) res(); else { still.addEventListener("load", res, { once: true }); still.addEventListener("error", res, { once: true }); }
+  }));
+
+  // 3. the hero video (first frame), unless we are skipping it
+  if (video && (reduce || lite)) {
+    video.remove();
+  } else if (video) {
+    ready.push(new Promise((res) => {
+      const sources = video.querySelectorAll("source");
+      const last = sources[sources.length - 1];
+      video.addEventListener("loadeddata", res, { once: true });
+      video.addEventListener("error", res, { once: true });
+      if (last) last.addEventListener("error", res, { once: true });   // no video file at all: do not wait for it
+      if (video.readyState >= 2) res();
+    }));
+    const start = () => {
+      const p = video.play();
+      if (p && p.then) p.then(() => video.classList.add("is-playing")).catch(() => {});
+    };
+    if (video.readyState >= 2) start(); else video.addEventListener("loadeddata", start, { once: true });
+    // Save battery and data: pause when the hero is off screen or the tab is hidden.
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver((entries) => {
+        entries.forEach((e) => { if (video.readyState >= 2) { if (e.isIntersecting) video.play().catch(() => {}); else video.pause(); } });
+      }).observe(hero.parentElement);
+    }
+  }
+
+  Promise.all(ready).then(finish);
+  setTimeout(finish, 3500);
 })();
 
+
+/* ---------- 7. GOOGLE REVIEW STRIP (under the hero logo) ----------
+   Reads your real Google reviews from Featurable (settings.js > FEATURABLE_WIDGET_ID) and slides them sideways.
+   Nothing is made up: if the reviews cannot be loaded, the strip stays hidden and the page falls back to your
+   Featurable widget in the "What people say" section (hidden until it is needed). */
+(function () {
+  const strip = document.getElementById("review-strip");
+  if (!strip) return;
+  const widgetId = typeof FEATURABLE_WIDGET_ID !== "undefined" ? FEATURABLE_WIDGET_ID : "";
+  const CACHE_KEY = "goodeats-reviews-v2";
+  const CACHE_MS = 6 * 60 * 60 * 1000;               // reuse for 6 hours (kind to Featurable's rate limit)
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* Accept the shapes Featurable's API is documented to return (and the older shape too). */
+  function normalise(data) {
+    const list = (data && (data.reviews || (data.widget && data.widget.reviews))) || [];
+    const words = { ONE: 1, TWO: 2, THREE: 3, FOUR: 4, FIVE: 5 };
+    return list.map((r) => {
+      const who = (r.author && r.author.name) || (r.reviewer && r.reviewer.displayName) || "";
+      const raw = r.rating && typeof r.rating === "object" ? r.rating.value : (r.starRating !== undefined ? r.starRating : r.rating);
+      const stars = typeof raw === "string" ? (words[raw.toUpperCase()] || Number(raw)) : Number(raw);
+      const a = r.author || r.reviewer || {};
+      const photo = a.profilePhotoUrl || a.photoUrl || a.profile_photo_url || a.photo || r.profilePhotoUrl || r.photoUrl || "";
+      return { photo: /^https:\/\//.test(String(photo)) ? String(photo) : "", who: String(who).trim(), stars: Math.max(1, Math.min(5, Math.round(stars) || 0)), text: String(r.text || r.comment || "").replace(/\s+/g, " ").trim(), when: r.publishedAt || r.createTime || "" };
+    }).filter((r) => r.stars >= 1 && r.text.length > 0 && r.who);
+  }
+
+  function endpoints() {
+    const custom = typeof FEATURABLE_API_URL !== "undefined" && FEATURABLE_API_URL ? [FEATURABLE_API_URL] : [];
+    return custom.concat(["https://api.featurable.com/api/v2/widgets/" + widgetId, "https://featurable.com/api/v2/widgets/" + widgetId]);
+  }
+
+  async function fetchReviews() {
+    try {
+      const c = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
+      if (c && c.id === widgetId && Date.now() - c.at < CACHE_MS && c.reviews.length) return c.reviews;
+    } catch (e) {}
+    for (const url of endpoints()) {
+      try {
+        const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 5000);
+        const r = await fetch(url, { signal: ctl.signal }); clearTimeout(t);
+        if (!r.ok) continue;
+        const list = normalise(await r.json());
+        if (list.length) {
+          try { localStorage.setItem(CACHE_KEY, JSON.stringify({ id: widgetId, at: Date.now(), reviews: list })); } catch (e) {}
+          return list;
+        }
+      } catch (e) { /* try the next address */ }
+    }
+    return [];
+  }
+
+  function draw(list) {
+    const track = strip.querySelector(".review-track");
+    const G = '<svg viewBox="0 0 48 48" width="16" height="16" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.1 5.5c4.3-4 6.8-9.9 6.8-16.9z"/><path fill="#FBBC05" d="M10.5 28.7a14.5 14.5 0 0 1 0-9.4l-7.9-6.1a24 24 0 0 0 0 21.6l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.5c-2 1.4-4.6 2.3-8.8 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>';
+    const mk = (r, hidden) => {
+      const item = document.createElement("span"); item.className = "rv";
+      if (hidden) item.setAttribute("aria-hidden", "true");
+      const pic = document.createElement("span"); pic.className = "rv-pic";
+      const initial = document.createElement("span"); initial.className = "rv-initial"; initial.textContent = (r.who[0] || "?").toUpperCase();
+      pic.appendChild(initial);
+      if (r.photo) {
+        const img = document.createElement("img"); img.alt = ""; img.loading = "lazy"; img.referrerPolicy = "no-referrer"; img.src = r.photo;
+        img.addEventListener("error", () => img.remove());
+        pic.appendChild(img);
+      }
+      const g = document.createElement("span"); g.className = "rv-g"; g.innerHTML = G; g.title = "Google review";
+      pic.appendChild(g);
+      const stars = document.createElement("span"); stars.className = "rv-stars";
+      stars.textContent = "\u2605".repeat(r.stars) + "\u2606".repeat(5 - r.stars);
+      stars.setAttribute("aria-label", r.stars + " out of 5 stars on Google");
+      const q = document.createElement("span"); q.className = "rv-text"; q.textContent = "\u201c" + r.text + "\u201d";
+      const w = document.createElement("span"); w.className = "rv-who"; w.textContent = r.who;
+      const body = document.createElement("span"); body.className = "rv-body";
+      const top = document.createElement("span"); top.className = "rv-top"; top.append(w, stars);
+      body.append(top, q);
+      item.append(pic, body);
+      return item;
+    };
+    const shown = list.slice(0, 12);
+    // A second copy makes the slide loop without a gap (hidden from screen readers). Not needed when it does not move.
+    const nodes = shown.map((r) => mk(r, false));
+    if (!reduce) shown.forEach((r) => nodes.push(mk(r, true)));
+    track.replaceChildren(...nodes);
+    strip.style.setProperty("--rv-dur", Math.max(30, shown.length * 9) + "s");
+    strip.hidden = false;
+  }
+
+  function showFallback() {
+    const box = document.getElementById("featurable-box"), sec = document.getElementById("reviews");
+    if (!box || !sec || !widgetId) return;
+    box.id = "featurable-" + widgetId; box.setAttribute("data-featurable-async", "");
+    sec.hidden = false;
+    const s = document.createElement("script");
+    s.src = "https://featurable.com/assets/bundle.js"; s.defer = true; s.charset = "UTF-8";
+    document.body.appendChild(s);
+  }
+
+  // Pause / play button (people must be able to stop moving text)
+  const pause = document.getElementById("review-pause");
+  if (pause) pause.addEventListener("click", () => {
+    const on = strip.classList.toggle("is-paused");
+    pause.setAttribute("aria-pressed", String(on));
+    pause.setAttribute("aria-label", on ? "Play reviews" : "Pause reviews");
+    pause.innerHTML = on
+      ? '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>'
+      : '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+  });
+
+  if (!widgetId) { console.warn("Review strip: set FEATURABLE_WIDGET_ID in settings.js."); return; }
+  fetchReviews().then((list) => { if (list.length) draw(list); else { console.warn("Review strip: Featurable did not return reviews, showing the Featurable widget instead."); showFallback(); } });
+})();

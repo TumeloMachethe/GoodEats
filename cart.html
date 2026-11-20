@@ -7,8 +7,8 @@
 <meta name="description" content="Review and send your Good Eats order.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
-<meta name="theme-color" content="#faf6ec">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Source+Sans+3:wght@400;500;600&family=Source+Serif+4:wght@500;600&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#faf8f4">
 <link rel="icon" href="favicon.ico" sizes="48x48">
 <link rel="icon" type="image/png" sizes="32x32" href="images/icons/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="images/icons/favicon-16.png">
@@ -31,15 +31,18 @@
   <a href="index.html" class="brand"><img src="images/logo.png" alt="Good Eats home"></a>
   <!-- Nav links are built from menu-data.js -->
   <nav class="nav" aria-label="Menu categories" data-menu-nav></nav>
-  <a href="cart.html" class="btn btn-yellow">Order now</a>
+  <a href="cart.html" class="btn btn-primary">Order now</a>
 </header>
+
+<p id="demo-banner" class="demo-banner" hidden>DEMO: payments run in PayFast test mode. No real money is taken.</p>
 
 <main class="cat-main" id="top">
   <a class="cat-back" href="index.html#menu">Back to the full menu</a>
   <section class="menu-block cart-page order-page" id="order" aria-label="Your order">
     <div class="menu-text">
-      <h1 class="brush brush-lg">Your order</h1>
+      <h1 class="page-title">Your order</h1>
       <noscript><p class="cart-empty">Online ordering needs JavaScript. Please order on <a href="https://wa.me/27839415837">WhatsApp: 083 941 5837</a>.</p></noscript>
+      <p id="last-order-note" class="last-order-note" hidden>Your last order <strong id="last-order-ref"></strong> is saved on this device. When your cart is empty, this page shows it again.</p>
       <p id="cart-empty" class="cart-empty">Your cart is empty. Pick something from the menu below.</p>
       <ul id="cart-items" class="cart-items" aria-live="polite"></ul>
       <div id="cart-totals" class="cart-totals" hidden>
@@ -65,6 +68,9 @@
     </fieldset>
 
     <div id="delivery-fields">
+      <label class="field"><span>Delivery area</span>
+        <select id="area" name="area" required><option value="">Choose your area</option></select></label>
+      <p id="free-note" class="free-note" hidden>Free delivery to Central/Town</p>
       <label class="field"><span>Delivery address</span>
         <textarea id="address" name="address" rows="2" autocomplete="street-address" placeholder="House or flat number, street, suburb"></textarea></label>
       <button type="button" id="locate-btn" class="btn btn-outline">Share my location</button>
@@ -74,21 +80,58 @@
     <label class="field"><span>Notes (optional)</span>
       <textarea id="notes" name="notes" rows="2" placeholder="Brown or white bread, no jalape&ntilde;os, and so on"></textarea></label>
 
-    <button type="submit" id="submit-btn" class="btn btn-yellow btn-block">Send order</button>
-    <button type="button" id="wa-btn" class="btn btn-outline btn-block">Send this order on WhatsApp instead</button>
+    <label class="terms-tick"><input type="checkbox" id="terms-ok">
+      <span>I accept the <a href="terms.html" target="_blank" rel="noopener">Terms &amp; Conditions</a>, the <a href="refunds.html" target="_blank" rel="noopener">Refund &amp; Cancellation Policy</a> and the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</span></label>
+
+    <button type="submit" id="submit-btn" class="btn btn-primary btn-block" disabled>Pay with PayFast</button>
+    <p class="pay-methods">Secure payment by PayFast:
+      <span class="pm">Capitec Pay</span><span class="pm">Instant EFT</span><span class="pm">Visa</span><span class="pm">Mastercard</span></p>
+    <p id="demo-note" class="demo-note" hidden>Demo mode: test payments only.</p>
+    <button type="button" id="wa-btn" class="btn btn-outline btn-block">Order on WhatsApp instead (pay on delivery or collection)</button>
     <p id="form-status" class="status" aria-live="polite"></p>
   </form>
 
-  <!-- Thank-you screen, shown after the order is sent -->
+  <!-- Thank-you / payment waiting screen, shown after the customer returns from PayFast. order.js drives it (search "PAYMENT WAITING SCREEN"). -->
   <div id="thanks" class="thanks" tabindex="-1" hidden>
-    <svg class="thanks-anim" viewBox="0 0 70 70" aria-hidden="true"><circle cx="35" cy="35" r="30"/><path d="M21 36 l10 10 l19 -22"/></svg><div class="confetti" aria-hidden="true"><i style="--x:99px;--y:93px"></i><i style="--x:-105px;--y:80px"></i><i style="--x:-10px;--y:49px"></i><i style="--x:111px;--y:73px"></i><i style="--x:94px;--y:64px"></i><i style="--x:-125px;--y:57px"></i><i style="--x:16px;--y:69px"></i><i style="--x:84px;--y:56px"></i><i style="--x:-63px;--y:33px"></i><i style="--x:81px;--y:71px"></i><i style="--x:25px;--y:39px"></i><i style="--x:-63px;--y:45px"></i><i style="--x:-19px;--y:89px"></i><i style="--x:-107px;--y:89px"></i><i style="--x:-118px;--y:82px"></i><i style="--x:73px;--y:92px"></i></div>
-    <h3 id="thanks-title">Thank you!</h3>
-    <p>We got your order and will contact you on your phone number if we need anything.</p>
-    <p class="slip-note">Download your order slip and show it at the store. We find your order by your name.</p>
-    <button type="button" id="slip-btn" class="btn btn-yellow btn-block">Download order slip (PDF)</button>
+    <h2 id="thanks-title">Thank you!</h2>
+    <div class="confetti" id="confetti" aria-hidden="true"></div>
+    <p>We have your order. We will contact you on your phone number if we need anything.</p>
+    <p class="ref-line" id="thanks-ref"></p>
+
+    <div id="pay-wait" class="pay-wait" data-state="waiting">
+      <div class="pay-play" aria-hidden="true">
+        <svg class="pay-burger" viewBox="0 0 120 92">
+          <g class="b1"><path d="M14 30 C14 8 106 8 106 30 Z" fill="#e0a03a"/><circle cx="40" cy="20" r="2" fill="#fff3d0"/><circle cx="60" cy="15" r="2" fill="#fff3d0"/><circle cx="80" cy="20" r="2" fill="#fff3d0"/></g>
+          <g class="b2"><path d="M10 36 q8 8 16 0 t16 0 t16 0 t16 0 t16 0 t16 0 v4 H10 Z" fill="#5fae4a"/></g>
+          <g class="b3"><path d="M12 42 H108 L100 52 H20 Z" fill="#ffc72c"/></g>
+          <g class="b4"><rect x="12" y="52" width="96" height="12" rx="6" fill="#6b3a1e"/></g>
+          <g class="b5"><path d="M14 68 H106 V72 C106 82 96 86 86 86 H34 C24 86 14 82 14 72 Z" fill="#e0a03a"/></g>
+        </svg>
+        <p class="pay-tip" id="pay-tip">We have your order.</p>
+        <span class="dots-load"><i></i><i></i><i></i></span>
+      </div>
+      <svg class="pay-ring" viewBox="0 0 64 64" aria-hidden="true"><circle class="ring-track" cx="32" cy="32" r="28"/><circle class="ring-arc" cx="32" cy="32" r="28"/><path class="ring-check" d="M20 33 l8 8 l16 -18"/></svg>
+      <div class="pay-status" aria-live="polite">
+        <h3 class="pay-title" id="pay-title">Checking your payment</h3>
+        <p class="pay-text" id="pay-text"></p>
+      </div>
+      <ol class="pay-steps">
+        <li class="done" data-step="paid"><span class="step-mark"></span><span class="step-label"><span class="vh step-state">Done: </span><span class="step-name">Payment made on PayFast</span></span></li>
+        <li class="done" data-step="received"><span class="step-mark"></span><span class="step-label"><span class="vh step-state">Done: </span><span class="step-name">Order received by the shop</span></span></li>
+        <li class="active" data-step="confirm" aria-current="step"><span class="step-mark"></span><span class="step-label"><span class="vh step-state">In progress: </span><span class="step-name">Shop confirming your payment</span></span></li>
+        <li data-step="slip"><span class="step-mark"></span><span class="step-label"><span class="vh step-state">Not yet: </span><span class="step-name">Order slip ready to download</span></span></li>
+      </ol>
+      <div class="pay-late" id="pay-late" hidden>
+        <p>If you have paid and nothing changes, message the shop with your order reference. This page keeps checking in the background.</p>
+        <a id="pay-wa-inline" class="btn btn-primary" href="#" target="_blank" rel="noopener">Message the shop on WhatsApp</a>
+      </div>
+    </div>
+
+    <p class="slip-note">Download your order slip and show it at the store. We find your order by your name and reference.</p>
+    <button type="button" id="slip-btn" class="btn btn-primary btn-block" disabled>Slip unlocks after payment is confirmed</button>
     <pre id="thanks-summary" class="thanks-summary"></pre>
     <div class="hero-actions">
-      <a href="index.html#menu" class="btn btn-yellow">Order again</a>
+      <a href="index.html#menu" id="order-again" class="btn btn-primary">Order again</a>
       <a href="https://wa.me/27839415837" class="btn btn-outline" target="_blank" rel="noopener">WhatsApp us</a>
     </div>
   </div>
@@ -100,19 +143,31 @@
   </section>
 </main>
 
+<!-- Pop-up shown once the waiting time (PAY_WAIT_SECONDS in settings.js) has passed without a confirmation -->
+<dialog id="pay-dialog" class="pay-dialog" aria-labelledby="pay-dialog-title" aria-describedby="pay-dialog-text">
+  <h2 id="pay-dialog-title">We have not confirmed your payment yet</h2>
+  <p id="pay-dialog-text">The shop checks payments by hand. If you have paid, please message us on WhatsApp with your order reference and we will check it.</p>
+  <p class="ref-line" id="pay-dialog-ref"></p>
+  <div class="dialog-actions">
+    <a id="pay-wa-dialog" class="btn btn-primary" href="#" target="_blank" rel="noopener">Message the shop on WhatsApp</a>
+    <button type="button" id="pay-dialog-close" class="btn btn-outline">Keep waiting</button>
+  </div>
+  <p class="status">This page keeps checking in the background. Your slip unlocks here as soon as the payment is confirmed.</p>
+</dialog>
+
 <footer class="site-footer">
   <span>21 Chapel Street, Central, Gqeberha</span>
   <a href="https://wa.me/27839415837" target="_blank" rel="noopener">WhatsApp: 083 941 5837</a>
 
   <div class="footer-links">
-    <!-- SOCIAL LINKS: replace each YOUR-PAGE with the real page name once the owner confirms -->
-    <a href="https://www.facebook.com/YOUR-PAGE" target="_blank" rel="noopener" aria-label="Good Eats on Facebook">Facebook</a>
-    <a href="https://www.instagram.com/YOUR-PAGE" target="_blank" rel="noopener" aria-label="Good Eats on Instagram">Instagram</a>
-    <a href="https://www.tiktok.com/@YOUR-PAGE" target="_blank" rel="noopener" aria-label="Good Eats on TikTok">TikTok</a>
+    <!-- SOCIAL LINKS: Facebook and Instagram are set. TikTok is not added yet: add it here once there is a page. -->
+    <a href="https://www.facebook.com/people/Good-eats/61594930986692/" target="_blank" rel="noopener" aria-label="Good Eats on Facebook">Facebook</a>
+    <a href="https://www.instagram.com/goodeatsgqeberha/" target="_blank" rel="noopener" aria-label="Good Eats on Instagram">Instagram</a>
   </div>
   <div class="footer-links footer-legal">
     <a href="privacy.html">Privacy Policy</a>
     <a href="terms.html">Terms &amp; Conditions</a>
+    <a href="refunds.html">Refunds &amp; Cancellations</a>
   </div>
 </footer>
 

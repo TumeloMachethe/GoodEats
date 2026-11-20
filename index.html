@@ -7,8 +7,8 @@
 <meta name="description" content="Chips, burgers, toasties, croissants, kota and more at Good Eats, 21 Chapel Street, Central, Gqeberha. Order online.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
-<meta name="theme-color" content="#faf6ec">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Source+Sans+3:wght@400;500;600&family=Source+Serif+4:wght@500;600&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#faf8f4">
 <link rel="icon" href="favicon.ico" sizes="48x48">
 <link rel="icon" type="image/png" sizes="32x32" href="images/icons/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="images/icons/favicon-16.png">
@@ -23,6 +23,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preload" as="image" href="images/logo.png">
 <script>try{document.documentElement.setAttribute("data-theme",localStorage.getItem("goodeats-theme")==="dark"?"dark":"light")}catch(e){document.documentElement.setAttribute("data-theme","light")}</script>
+<script>document.documentElement.classList.add("is-loading");setTimeout(function(){document.documentElement.classList.remove("is-loading")},4500)</script>
 <link rel="stylesheet" href="styles.css">
 <script type="application/ld+json">{
  "@context": "https://schema.org",
@@ -51,111 +52,130 @@
 </head>
 <body>
 
+<!-- ============ PAGE LOADER (shown only while the home page and hero load; site.js removes it, and a 4.5 s failsafe in the head does too) ============ -->
+<div class="page-loader" id="page-loader" role="status">
+  <div class="loader-mark">
+    <img src="images/logo.png" alt="" onerror="this.hidden=true">
+    <span class="loader-bar" aria-hidden="true"></span>
+    <span class="vh">Loading Good Eats</span>
+  </div>
+</div>
+
 <!-- ============ HEADER (sticky, Order Now always visible) ============ -->
 <header class="site-header">
   <a href="#top" class="brand"><img src="images/logo.png" alt="Good Eats"></a>
   <!-- Nav links are built from menu-data.js -->
   <nav class="nav" aria-label="Menu categories" data-menu-nav></nav>
-  <a href="cart.html" class="btn btn-yellow">Order now</a>
+  <a href="cart.html" class="btn btn-primary">Order now</a>
 </header>
 
 <main id="top">
 
-<!-- ============ HERO (promo video) ============ -->
-<!-- Put your video at videos/promo.mp4 (short loop, under about 8 MB, no sound needed). If it is missing, the chalkboard hero shows instead. -->
-<section class="hero hero-video">
-  <video id="promo-video" class="promo-video" autoplay muted loop playsinline preload="metadata">
-    <source src="videos/promo.mp4" type="video/mp4">
-  </video>
+<!-- ============ HERO ============
+  Background = a real still photo (images/hero/hero-still.jpg) with a short silent looping video on top
+  (images/hero/hero.webm and hero.mp4). The photo is what shows while the video loads, when the visitor
+  has "reduce motion" or Data Saver on, and if the video file is missing. If the photo is missing the hero
+  is a plain dark colour. See images/hero/README.txt for sizes. -->
+<section class="hero" aria-label="Welcome to Good Eats">
+  <div class="hero-media" aria-hidden="true">
+    <img class="hero-still" src="images/hero/still.png" alt="" fetchpriority="high" decoding="async" onerror="this.remove()">
+    <video class="hero-video" muted loop playsinline preload="metadata" tabindex="-1" disablepictureinpicture>
+      <source src="images/hero/hero.webm" type="video/webm">
+      <source src="images/hero/promo.mp4" type="video/mp4">
+    </video>
+  </div>
   <div class="hero-inner">
-    <img class="hero-logo" src="images/logo.png" alt="Good Eats. Good food, good mood.">
-    <p class="brush brush-lg">Opening specials</p>
-    <p class="hero-note">Fresh food, great vibes. Order online and we will get it ready.</p>
+    <img class="hero-logo" src="images/logo.png" alt="Good Eats">
+
+    <!-- Google review strip, directly under the logo. site.js fills it with your real Google reviews (settings.js > FEATURABLE_WIDGET_ID). It stays hidden if no reviews load. -->
+    <section class="review-strip" id="review-strip" aria-label="What customers say on Google" hidden>
+      <div class="review-viewport"><div class="review-track"></div></div>
+      <button type="button" class="review-pause" id="review-pause" aria-label="Pause reviews" aria-pressed="false">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+      </button>
+    </section>
+
+    <h1 class="hero-title">Good food, good mood.</h1>
+    <p class="hero-note">Burgers, chips, toasties, croissants, schnitzel, smoothies and more. Order online for delivery or collection.</p>
     <div class="hero-actions">
-      <a href="cart.html" class="btn btn-yellow">Order now</a>
+      <a href="cart.html" class="btn btn-primary">Order now</a>
       <a href="https://wa.me/27839415837" class="btn btn-outline" target="_blank" rel="noopener">WhatsApp us</a>
     </div>
-    <p class="hero-address">21 Chapel Street, Central, Gqeberha</p>
-    <p class="hero-address" data-hours hidden></p>
+    <div class="hero-facts">
+      <p class="hero-address">21 Chapel Street, Central, Gqeberha</p>
+      <p class="hero-address" data-hours hidden></p>
+      <p class="hero-address" data-free-delivery hidden></p>
+    </div>
   </div>
-  <button type="button" id="video-toggle" class="video-toggle" aria-label="Pause promo video" hidden>Pause video</button>
 </section>
-
-<!-- ============ PROMO TICKER (the phrases come from TICKER in menu-data.js) ============ -->
-<div class="ticker" aria-label="Current specials">
-  <div class="ticker-track"></div>
-</div>
 
 <!-- ============ MENU ============ -->
 <!-- The category cards are built from MENU in menu-data.js. Each category has its own page (chips.html and so on) which also reads menu-data.js. -->
-<section class="menu categories" id="menu" aria-label="Menu">
-  <h2 class="brush">Our menu</h2>
+<section class="categories" id="menu" aria-label="Menu">
+  <h2 class="section-title">Our menu</h2>
   <div class="cat-grid" id="cat-grid"></div>
-</section>
-
-<!-- ============ POPULAR RIGHT NOW (the cards come from SPECIALS in menu-data.js; they use the same cart names as the menu, so the cart merges them) ============ -->
-<section class="specials" id="specials" aria-label="Opening specials">
-  <h2 class="brush">Popular right now</h2>
-  <div class="special-grid" id="special-grid"></div>
 </section>
 
 <!-- ============ COMBOS (the cards come from COMBOS in menu-data.js) ============ -->
 <section class="specials" id="combos" aria-label="Combos">
-  <h2 class="brush">Combos</h2>
+  <h2 class="section-title">Combos</h2>
   <div class="special-grid" id="combo-grid"></div>
 </section>
 
-<!-- ============ TEAM ============ -->
-<!-- Photos: images/staff-1.jpg, staff-2.jpg, staff-3.jpg. To add a person, copy one whole <article class="staff-card"> block and change the photo name. Remove "placeholder" from the class once it is filled in. -->
-<section class="team" id="team">
-  <h2 class="brush">Meet the team</h2>
+<!-- ============ MEET OUR STAFF (left for you to fill in) ============
+  This section is switched off for now (the word "hidden" on the <section> line), so visitors never see
+  "Staff name" placeholders. To use it:
+    1. Put each photo in images/ (staff-1.jpg, staff-2.jpg, staff-3.jpg or any names you like).
+    2. Change the name and role in each card. To add a person, copy one whole <article class="staff-card"> block.
+    3. Delete the word  placeholder  from each card's class, then delete the word  hidden  from the <section> line. -->
+<section class="team" id="team" aria-label="Meet our staff" hidden>
+  <h2 class="section-title">Meet our staff</h2>
   <div class="staff-grid">
     <article class="staff-card placeholder">
       <div class="avatar"><img class="photo" src="images/staff-1.jpg" alt="Good Eats team member" loading="lazy"></div>
       <h3>Staff name</h3>
-      <p class="role">Role, for example Cook</p>
+      <p class="role">Role</p>
     </article>
     <article class="staff-card placeholder">
       <div class="avatar"><img class="photo" src="images/staff-2.jpg" alt="Good Eats team member" loading="lazy"></div>
       <h3>Staff name</h3>
-      <p class="role">Role, for example Cashier</p>
+      <p class="role">Role</p>
     </article>
     <article class="staff-card placeholder">
       <div class="avatar"><img class="photo" src="images/staff-3.jpg" alt="Good Eats team member" loading="lazy"></div>
       <h3>Staff name</h3>
-      <p class="role">Role, for example Delivery</p>
+      <p class="role">Role</p>
     </article>
   </div>
 </section>
 
-<!-- ============ REVIEWS ============ -->
-<!-- Paste REAL customer reviews only. Copy one <figure class="review"> block per review. Change the stars (keep 5 of the 5 star characters, filled ones first), the quote, the name and where it came from. Remove "placeholder" from the class when done. -->
-<section class="reviews" id="reviews">
-  <h2 class="brush">What people say</h2>
-  <!-- GOOGLE REVIEWS WIDGET (Featurable). Reviews come from the Google profile automatically. -->
-  <div class="google-reviews">
-    <div id="featurable-469e3e24-c258-4a81-8a6f-4ca5673642ed" data-featurable-async></div>
-    <script src="https://featurable.com/assets/bundle.js" defer charset="UTF-8"></script>
-  </div>
-  <div class="hero-actions review-cta">
-    <a class="btn btn-yellow" href="https://g.page/r/CaKa4jDLGHx7EBM/review" target="_blank" rel="noopener">Leave us a review</a>
-    <a class="btn btn-outline" href="https://wa.me/27839415837?text=Hi%20Good%20Eats%2C%20here%20is%20my%20feedback%3A%20" target="_blank" rel="noopener">Send feedback on WhatsApp</a>
-  </div>
+<!-- ============ GOOGLE REVIEWS: BACK-UP ============
+  The review strip under the logo is the main place for reviews. This section stays hidden. It only appears
+  if the strip could not load your reviews, and then it shows your Featurable widget instead (site.js loads
+  Featurable's script only in that case). -->
+<section class="reviews" id="reviews" aria-label="Google reviews" hidden>
+  <h2 class="section-title">What people say</h2>
+  <div class="google-reviews" id="featurable-box"></div>
 </section>
 
 <!-- ============ FIND US ============ -->
 <section class="visit" id="visit">
-  <h2 class="brush">Find us</h2>
+  <h2 class="section-title">Find us</h2>
   <div class="visit-grid">
     <div class="visit-info">
       <p class="visit-address">21 Chapel Street<br>Central, Gqeberha</p>
       <p class="visit-hours" data-hours hidden></p>
       <div class="hero-actions">
-        <a href="https://www.google.com/maps/dir/?api=1&amp;destination=21+Chapel+Street+Central+Gqeberha" class="btn btn-yellow" target="_blank" rel="noopener">Get directions</a>
+        <a href="https://www.google.com/maps/dir/?api=1&amp;destination=21+Chapel+Street+Central+Gqeberha" class="btn btn-primary" target="_blank" rel="noopener">Get directions</a>
         <a href="https://wa.me/27839415837" class="btn btn-outline" target="_blank" rel="noopener">WhatsApp us</a>
       </div>
       <p class="sub">Planning a function or a big order?</p>
       <a href="https://wa.me/27839415837?text=Hi%20Good%20Eats%2C%20I%20would%20like%20to%20ask%20about%20a%20large%20order%20or%20function.%20Date%3A%20%20Number%20of%20people%3A%20" class="btn btn-outline" target="_blank" rel="noopener">Ask about a large order</a>
+      <p class="sub">Been to see us?</p>
+      <div class="hero-actions">
+        <a class="btn btn-outline" href="https://g.page/r/CaKa4jDLGHx7EBM/review" target="_blank" rel="noopener">Leave a Google review</a>
+        <a class="btn btn-outline" href="https://wa.me/27839415837?text=Hi%20Good%20Eats%2C%20here%20is%20my%20feedback%3A%20" target="_blank" rel="noopener">Send feedback on WhatsApp</a>
+      </div>
     </div>
     <iframe class="map" title="Map showing Good Eats at 21 Chapel Street, Central, Gqeberha" src="https://www.google.com/maps?q=21+Chapel+Street+Central+Gqeberha&amp;output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
   </div>
@@ -176,14 +196,14 @@
   <a href="https://wa.me/27839415837" target="_blank" rel="noopener">WhatsApp: 083 941 5837</a>
 
   <div class="footer-links">
-    <!-- SOCIAL LINKS: replace each YOUR-PAGE with the real page name once the owner confirms -->
-    <a href="https://www.facebook.com/YOUR-PAGE" target="_blank" rel="noopener" aria-label="Good Eats on Facebook">Facebook</a>
-    <a href="https://www.instagram.com/YOUR-PAGE" target="_blank" rel="noopener" aria-label="Good Eats on Instagram">Instagram</a>
-    <a href="https://www.tiktok.com/@YOUR-PAGE" target="_blank" rel="noopener" aria-label="Good Eats on TikTok">TikTok</a>
+    <!-- SOCIAL LINKS: Facebook and Instagram are set. TikTok is not added yet: add it here once there is a page. -->
+    <a href="https://www.facebook.com/people/Good-eats/61594930986692/" target="_blank" rel="noopener" aria-label="Good Eats on Facebook">Facebook</a>
+    <a href="https://www.instagram.com/goodeatsgqeberha/" target="_blank" rel="noopener" aria-label="Good Eats on Instagram">Instagram</a>
   </div>
   <div class="footer-links footer-legal">
     <a href="privacy.html">Privacy Policy</a>
     <a href="terms.html">Terms &amp; Conditions</a>
+    <a href="refunds.html">Refunds &amp; Cancellations</a>
   </div>
 </footer>
 

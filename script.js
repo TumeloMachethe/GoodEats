@@ -8,7 +8,7 @@
 const MAKE_WEBHOOK_URL = "PASTE_MAKE_WEBHOOK_URL_HERE";
 
 /* ---------- Shop settings (edit these) ---------- */
-const OPENING_HOURS = "Mon to Sat, 8am to 4pm";        // Example: "Mon to Sat, 8am to 8pm". Leave empty to hide hours.
+const OPENING_HOURS = "Mon to Fri, 7:30am to 5pm";        // Example: "Mon to Sat, 8am to 8pm". Leave empty to hide hours.
 const DELIVERY_FEE = 30;          // In rand. 0 = no delivery fee line.
 const WHATSAPP_NUMBER = "083 941 5837";
 const WHATSAPP_INTL = "27839415837";

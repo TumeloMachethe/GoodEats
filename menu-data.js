@@ -2,9 +2,8 @@
    GOOD EATS: THE MENU (edit this file to change the menu)
    ====================================================================
    This is the ONLY file you need to touch to add or remove a product,
-   change a price, or change the scrolling banner. The website builds
-   the category pages, the menu cards, the "Popular right now" cards, the
-   nav links and the scrolling ticker from the lists below.
+   change a price. The website builds the category pages, the menu cards
+   and the nav links from the lists below.
 
    HOW TO ADD A PRODUCT
      1. Find the category it belongs to (Chips, Burgers, ...).
@@ -32,7 +31,7 @@
    Each category is one block { ... },
      id     : the page name. "burgers" means the page burgers.html
      title  : the heading shown on the page and menu card
-     note   : (optional) small yellow line under the heading. Use "" for none.
+     note   : (optional) small line under the heading. Use "" for none.
      photo  : (optional) picture in the images folder. If it is missing, it hides itself.
      alt    : short description of the photo (for blind visitors and Google)
      cardPrice : (optional) the text on the home page card. If you leave it out,
@@ -161,19 +160,118 @@ const MENU = [
       { name: "Water 500ml", price: 10, cart: "Drink: Water", img: "images/items/water.jpg" },
     ],
   },
+  {
+    id: "smoothies",
+    title: "Smoothies",
+    note: "Fresh and blended. 350ml or 500ml.",
+    photo: "images/smoothies.jpg",
+    alt: "Smoothies",
+    items: [
+      { name: "Strawberry smoothie", price: 45, sizes: [
+        { label: "350ml", price: 45, cart: "Smoothie: Strawberry smoothie 350ml" },
+        { label: "500ml", price: 55, cart: "Smoothie: Strawberry smoothie 500ml" },
+      ] },
+      { name: "Peanut butter & banana", price: 50, sizes: [
+        { label: "350ml", price: 50, cart: "Smoothie: Peanut butter & banana 350ml" },
+        { label: "500ml", price: 60, cart: "Smoothie: Peanut butter & banana 500ml" },
+      ] },
+      { name: "Blueberry smoothie", price: 55, sizes: [
+        { label: "350ml", price: 55, cart: "Smoothie: Blueberry smoothie 350ml" },
+        { label: "500ml", price: 65, cart: "Smoothie: Blueberry smoothie 500ml" },
+      ] },
+      { name: "Strawberry & banana", price: 45, sizes: [
+        { label: "350ml", price: 45, cart: "Smoothie: Strawberry & banana 350ml" },
+        { label: "500ml", price: 55, cart: "Smoothie: Strawberry & banana 500ml" },
+      ] },
+      { name: "Mixed berry smoothie", price: 55, sizes: [
+        { label: "350ml", price: 55, cart: "Smoothie: Mixed berry smoothie 350ml" },
+        { label: "500ml", price: 65, cart: "Smoothie: Mixed berry smoothie 500ml" },
+      ] },
+      { name: "Mango & apple smoothie", price: 45, sizes: [
+        { label: "350ml", price: 45, cart: "Smoothie: Mango & apple smoothie 350ml" },
+        { label: "500ml", price: 55, cart: "Smoothie: Mango & apple smoothie 500ml" },
+      ] },
+      { name: "Coconut butter smoothie", price: 50, sizes: [
+        { label: "350ml", price: 50, cart: "Smoothie: Coconut butter smoothie 350ml" },
+        { label: "500ml", price: 55, cart: "Smoothie: Coconut butter smoothie 500ml" },
+      ] },
+    ],
+  },
+  {
+    id: "milkshakes",
+    title: "Milkshakes",
+    cardPrice: "From R40",
+    note: "Thick and creamy. 350ml or 500ml.",
+    photo: "images/milkshakes.jpg",
+    alt: "Milkshakes",
+    items: [
+      { name: "Blueberry", price: 40, sizes: [
+        { label: "350ml", price: 40, cart: "Milkshake: Blueberry 350ml" },
+        { label: "500ml", price: 50, cart: "Milkshake: Blueberry 500ml" },
+      ] },
+      { name: "Strawberry", price: 40, sizes: [
+        { label: "350ml", price: 40, cart: "Milkshake: Strawberry 350ml" },
+        { label: "500ml", price: 50, cart: "Milkshake: Strawberry 500ml" },
+      ] },
+      { name: "Lime", price: 40, sizes: [
+        { label: "350ml", price: 40, cart: "Milkshake: Lime 350ml" },
+        { label: "500ml", price: 50, cart: "Milkshake: Lime 500ml" },
+      ] },
+      { name: "Chocolate", price: 40, sizes: [
+        { label: "350ml", price: 40, cart: "Milkshake: Chocolate 350ml" },
+        { label: "500ml", price: 50, cart: "Milkshake: Chocolate 500ml" },
+      ] },
+      { name: "Bubblegum", price: 40, sizes: [
+        { label: "350ml", price: 40, cart: "Milkshake: Bubblegum 350ml" },
+        { label: "500ml", price: 50, cart: "Milkshake: Bubblegum 500ml" },
+      ] },
+    ],
+  },
+  {
+    id: "coolers",
+    title: "Coolers",
+    cardPrice: "From R35",
+    note: "Ice cold and fruity. 350ml or 500ml.",
+    photo: "images/coolers.jpg",
+    alt: "Coolers",
+    items: [
+      { name: "Lemonade & mint", price: 35, sizes: [
+        { label: "350ml", price: 35, cart: "Cooler: Lemonade & mint 350ml" },
+        { label: "500ml", price: 45, cart: "Cooler: Lemonade & mint 500ml" },
+      ] },
+      { name: "Granadilla", price: 35, sizes: [
+        { label: "350ml", price: 35, cart: "Cooler: Granadilla 350ml" },
+        { label: "500ml", price: 45, cart: "Cooler: Granadilla 500ml" },
+      ] },
+      { name: "Raspberry", price: 35, sizes: [
+        { label: "350ml", price: 35, cart: "Cooler: Raspberry 350ml" },
+        { label: "500ml", price: 45, cart: "Cooler: Raspberry 500ml" },
+      ] },
+      { name: "Strawberry", price: 35, sizes: [
+        { label: "350ml", price: 35, cart: "Cooler: Strawberry 350ml" },
+        { label: "500ml", price: 45, cart: "Cooler: Strawberry 500ml" },
+      ] },
+      { name: "Passion fruit", price: 35, sizes: [
+        { label: "350ml", price: 35, cart: "Cooler: Passion fruit 350ml" },
+        { label: "500ml", price: 45, cart: "Cooler: Passion fruit 500ml" },
+      ] },
+    ],
+  },
 ];
 
 /* --------------------------------------------------------------------
-   DRINK UPSELL (the "Make it a combo?" pop-up and the "Don't forget a drink" row)
-   Each one must match a Drinks product above by its CART name.
+   DRINK UPSELL ("Would you like to add a drink?" after any food is added)
+   One box per drink category. id must match a category id in MENU above.
+   The "from" price is the cheapest item in that category (worked out for you,
+   so it always matches the menu). img is the box background (a plain colour
+   shows if the photo is missing). To hide a box, delete its line.
    -------------------------------------------------------------------- */
-const UPSELL_DRINKS = [
-  { label: "Coke",   cart: "Drink: Coke 330ml",         price: 15 },
-  { label: "Fanta",  cart: "Drink: Fanta Orange 330ml", price: 15 },
-  { label: "Sprite", cart: "Drink: Sprite 330ml",       price: 15 },
-  { label: "Water",  cart: "Drink: Water",              price: 10 },
+const UPSELL_BOXES = [
+  { id: "drinks",     label: "Cold drinks", img: "images/drinks.jpg" },
+  { id: "smoothies",  label: "Smoothies",   img: "images/smoothies.jpg" },
+  { id: "milkshakes", label: "Milkshakes",  img: "images/milkshakes.jpg" },
+  { id: "coolers",    label: "Coolers",     img: "images/coolers.jpg" },
 ];
-const UPSELL_CATEGORIES = ["chips", "savoury", "burgers", "croissants", "toasties", "schnitzel"];
 
 /* --------------------------------------------------------------------
    "ADD A SIDE" EXTRAS shown in the item pop-up (optional, tick any).
@@ -191,24 +289,7 @@ const CHOICES = {
 };
 
 /* --------------------------------------------------------------------
-   "POPULAR RIGHT NOW" CARDS (the four cards under the menu on the home page)
-   Each one points at a product above by its CART name (the "cart" value,
-   or the "name" if the product has no "cart"). The price comes from the
-   product automatically, so it can never disagree with the menu.
-     item  : the cart name of the product (copy it exactly)
-     title : (optional) the heading on the card. Default = the product name.
-     text  : the small line under the heading
-   To remove a special, delete its line. To add one, copy a line.
-   -------------------------------------------------------------------- */
-const SPECIALS = [
-  { item: "Magwinya (each)",         title: "Magwinya",              text: "Each" },
-  { item: "Toastie: Cheesy",         title: "Cheesy Toastie",        text: "Brown or white bread" },
-  { item: "Russian & Chips",         title: "Russian & Chips",       text: "Hot and filling" },
-  { item: "Burger: Bacon & Cheese",  title: "Bacon & Cheese Burger", text: "Every burger is R45" },
-];
-
-/* --------------------------------------------------------------------
-   COMBOS (the "Combos" section under "Popular right now" on the home page)
+   COMBOS (the "Combos" section on the home page)
    PLACEHOLDERS: the combos and prices below are examples. Change them to the
    real ones. Each line is one card:
      title : the name on the card (also the name in the cart)
@@ -231,17 +312,4 @@ const COMBOS = [
   { title: "Schnitzel Combo", price: 55, img: "images/combos/schnitzel-combo.jpg",
     text: "Schnitzel & chips + a cold drink",
     items: ["Schnitzel & chips", "A cold drink (330ml)"] },
-];
-
-/* --------------------------------------------------------------------
-   THE SCROLLING BANNER (under the video on the home page)
-   Just write the phrases. The copy that makes it loop is added for you.
-   -------------------------------------------------------------------- */
-const TICKER = [
-  "Opening specials",
-  "All burgers R45",
-  "Magwinya R2 each",
-  "Loaded fries R40",
-  "Cheesy toastie R20",
-  "Kota R50",
 ];

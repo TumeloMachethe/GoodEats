@@ -100,6 +100,10 @@
   /* ---------- 1. Navigation links in the header ---------- */
   document.querySelectorAll("[data-menu-nav]").forEach((nav) => {
     const current = document.body.dataset.category;
+    const home = el("a", "", "Home");
+    home.href = "index.html";
+    if (!current && !document.body.classList.contains("cart-page") && !onCategoryPage) home.setAttribute("aria-current", "page");
+    nav.appendChild(home);
     const spec = el("a", "", "Specials");
     spec.href = homePrefix + "#specials";
     nav.appendChild(spec);
