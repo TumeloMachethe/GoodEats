@@ -16,6 +16,8 @@
      5. Home page effects (scroll reveal, nav highlight, opening hours)
      6. Hero video, page loader
      7. Google review strip under the logo (+ Featurable back-up)
+     8. Cookie banner (Accept / Reject) + "Cookie settings" footer link
+     9. Kota Combo pop-up when a visitor reaches the menu (home page only)
    ==================================================================== */
 
 /* ---------- 1. LIGHT / DARK SWITCH (light is the default; the choice is remembered) ---------- */
@@ -710,4 +712,166 @@
 
   if (!widgetId) { console.warn("Review strip: set FEATURABLE_WIDGET_ID in settings.js."); return; }
   fetchReviews().then((list) => { if (list.length) draw(list); else { console.warn("Review strip: Featurable did not return reviews, showing the Featurable widget instead."); showFallback(); } });
+})();
+
+
+/* ---------- 8. COOKIE BANNER (every page) ----------
+   Choice is saved in localStorage "goodeats-consent" as {choice: "all" | "essential", at: time}.
+   "Reject" switches off optional extras only: the cart, light/dark mode and order saving
+   always work because the site cannot run without them.
+   Other code can ask:  GE_consent.get()  -> "all" | "essential" | null
+   and listen:          window.addEventListener("goodeats:consent", e => e.detail.choice)
+   Put any future analytics or Facebook pixel behind  GE_consent.get() === "all". */
+(function () {
+  var KEY = "goodeats-consent";
+  function read() { try { var r = JSON.parse(localStorage.getItem(KEY) || "null"); return r && (r.choice === "all" || r.choice === "essential") ? r.choice : null; } catch (e) { return null; } }
+  function write(c) { try { localStorage.setItem(KEY, JSON.stringify({ choice: c, at: Date.now() })); } catch (e) {} }
+  window.GE_consent = { get: read };
+
+  var bar = null, opener = null;
+  function mk(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text) n.textContent = text; return n; }
+
+  function hide() {
+    if (!bar) return;
+    bar.classList.remove("is-in");
+    var b = bar; bar = null;
+    setTimeout(function () { b.remove(); }, 250);
+    if (opener && opener.focus) { try { opener.focus(); } catch (e) {} }
+    opener = null;
+  }
+  function choose(c) {
+    write(c); hide();
+    try { window.dispatchEvent(new CustomEvent("goodeats:consent", { detail: { choice: c } })); } catch (e) {}
+  }
+  function show(fromLink) {
+    if (bar) return;
+    opener = fromLink ? document.activeElement : null;
+    bar = mk("div", "consent");
+    bar.setAttribute("role", "region"); bar.setAttribute("aria-label", "Cookie consent");
+    var text = mk("div", "consent-text");
+    var h = mk("strong", "", "We use cookies");
+    var p = mk("p", "", "Essential storage keeps your cart and order working. With your OK we may also use optional cookies to improve the site. ");
+    var a = mk("a", "", "Privacy Policy"); a.href = "privacy.html"; p.appendChild(a);
+    text.append(h, p);
+    var row = mk("div", "consent-actions");
+    var rej = mk("button", "btn btn-primary", "Reject non-essential"); rej.type = "button";
+    var acc = mk("button", "btn btn-primary", "Accept all"); acc.type = "button";
+    rej.onclick = function () { choose("essential"); };
+    acc.onclick = function () { choose("all"); };
+    row.append(rej, acc);
+    bar.append(text, row);
+    document.body.appendChild(bar);
+    requestAnimationFrame(function () { requestAnimationFrame(function () { if (bar) bar.classList.add("is-in"); }); });
+    if (fromLink) acc.focus();
+  }
+
+  function addFooterLink() {
+    document.querySelectorAll(".footer-legal").forEach(function (box) {
+      if (box.querySelector("[data-cookie-settings]")) return;
+      var b = mk("button", "footer-linkbtn", "Cookie settings"); b.type = "button";
+      b.setAttribute("data-cookie-settings", "");
+      b.onclick = function () { show(true); };
+      box.appendChild(b);
+    });
+  }
+
+  function start() {
+    addFooterLink();
+    if (!read()) setTimeout(function () { if (!read()) show(false); }, 900);
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
+})();
+
+/* ---------- 9. KOTA COMBO POP-UP (home page only) ----------
+   Shows once when the visitor scrolls to "Our menu" (#menu), after the cookie choice is made.
+   Name and price come from the Kota Combo line in COMBOS (menu-data.js).
+   Closing it (X, "No thanks", Esc or a tap outside) hides it for 7 days. Picture: images/kota-combo-popup.png */
+(function () {
+  var menu = document.getElementById("menu");
+  if (!menu || typeof COMBOS === "undefined") return;
+  var combo = null;
+  for (var i = 0; i < COMBOS.length; i++) if (/kota/i.test(COMBOS[i].title)) { combo = COMBOS[i]; break; }
+  if (!combo) return;
+
+  var KEY = "goodeats-promo-kota", HIDE_MS = 7 * 24 * 3600 * 1000, IMG = "images/kota-combo-popup.png";
+  function hiddenNow() { try { var t = +localStorage.getItem(KEY); return t && Date.now() - t < HIDE_MS; } catch (e) { return false; } }
+  function remember() { try { localStorage.setItem(KEY, String(Date.now())); } catch (e) {} }
+  if (hiddenNow()) return;
+
+  function mk(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text) n.textContent = text; return n; }
+  var shown = false, pre = new Image();
+
+  function open() {
+    if (shown || hiddenNow() || document.querySelector(".sheet-back") || document.documentElement.classList.contains("is-loading")) return;
+    shown = true;
+    var back = mk("div", "promo-back"), card = mk("div", "promo");
+    card.setAttribute("role", "dialog"); card.setAttribute("aria-modal", "true"); card.setAttribute("aria-labelledby", "promo-title");
+    back.appendChild(card);
+    var previous = document.activeElement;
+
+    var pic = mk("div", "promo-pic");
+    var img = mk("img"); img.src = IMG; img.alt = "A Kota with a cold Coke 300ml"; img.addEventListener("error", function () { img.remove(); });
+    var x = mk("button", "promo-x"); x.type = "button"; x.setAttribute("aria-label", "Close");
+    x.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+    pic.append(img, x);
+
+    var body = mk("div", "promo-body");
+    var tag = mk("span", "promo-tag", "Combo deal");
+    var h = mk("h3", "", combo.title); h.id = "promo-title";
+    var t = mk("p", "promo-text", "Kota + an ice-cold Coke 300ml");
+    var price = mk("p", "promo-price", "R" + combo.price);
+    var add = mk("button", "btn btn-primary btn-block", "Add to my order"); add.type = "button";
+    var no = mk("button", "btn btn-outline btn-block", "No thanks"); no.type = "button";
+    body.append(tag, h, t, price, add, no);
+    card.append(pic, body);
+
+    function close() {
+      remember();
+      document.removeEventListener("keydown", onKey);
+      document.documentElement.classList.remove("promo-open");
+      back.classList.remove("is-in");
+      setTimeout(function () { back.remove(); }, 220);
+      if (previous && previous.focus) { try { previous.focus(); } catch (e) {} }
+    }
+    function onKey(e) {
+      if (e.key === "Escape") { close(); return; }
+      if (e.key !== "Tab") return;
+      var f = card.querySelectorAll("button"), first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+    x.onclick = close; no.onclick = close;
+    back.addEventListener("click", function (e) { if (e.target === back) close(); });
+    add.onclick = function () {
+      if (window.GE_addToCart) window.GE_addToCart("Combo: " + combo.title, combo.price, 1);
+      add.textContent = "Added \u2713"; add.disabled = true;
+      setTimeout(close, 800);
+    };
+    document.addEventListener("keydown", onKey);
+    document.documentElement.classList.add("promo-open");
+    document.body.appendChild(back);
+    requestAnimationFrame(function () { requestAnimationFrame(function () { back.classList.add("is-in"); add.focus(); }); });
+  }
+
+  var armed = false;
+  function whenReady(fn) {
+    if (window.GE_consent && window.GE_consent.get()) return fn();
+    window.addEventListener("goodeats:consent", function once() { window.removeEventListener("goodeats:consent", once); setTimeout(fn, 600); });
+  }
+  function arm() {
+    if (armed) return; armed = true;
+    if (!("IntersectionObserver" in window)) return;
+    pre.src = IMG;
+    var timer = null;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting && en.intersectionRatio >= 0.15) {
+          clearTimeout(timer);
+          timer = setTimeout(function () { open(); if (shown) io.disconnect(); }, 500);
+        } else clearTimeout(timer);
+      });
+    }, { threshold: [0, 0.15, 0.3] });
+    io.observe(menu);
+  }
+  whenReady(arm);
 })();
