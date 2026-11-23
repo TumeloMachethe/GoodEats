@@ -34,8 +34,6 @@
   <a href="cart.html" class="btn btn-primary">Order now</a>
 </header>
 
-<p id="demo-banner" class="demo-banner" hidden>DEMO: payments run in PayFast test mode. No real money is taken.</p>
-
 <main class="cat-main" id="top">
   <a class="cat-back" href="index.html#menu">Back to the full menu</a>
   <section class="menu-block cart-page order-page" id="order" aria-label="Your order">
@@ -48,6 +46,7 @@
       <div id="cart-totals" class="cart-totals" hidden>
         <p>Subtotal <span id="subtotal-amount">R0</span></p>
         <p id="fee-row" hidden>Delivery <span id="fee-amount">R0</span></p>
+        <p id="service-row" hidden>Service fee (online delivery orders) <span id="service-amount">R0</span></p>
         <p class="grand">Total <strong id="total-amount">R0</strong></p>
       </div>
       <div class="cart-actions">
@@ -60,6 +59,8 @@
       <input type="text" id="name" name="name" autocomplete="name" required></label>
     <label class="field"><span>Phone number</span>
       <input type="tel" id="phone" name="phone" autocomplete="tel" inputmode="tel" placeholder="083 000 0000" required></label>
+    <label class="field"><span>Email address</span>
+      <input type="email" id="email" name="email" autocomplete="email" inputmode="email" placeholder="you@example.com" required></label>
 
     <fieldset class="field choice">
       <legend>How do you want it?</legend>
@@ -83,15 +84,14 @@
     <label class="terms-tick"><input type="checkbox" id="terms-ok">
       <span>I accept the <a href="terms.html" target="_blank" rel="noopener">Terms &amp; Conditions</a>, the <a href="refunds.html" target="_blank" rel="noopener">Refund &amp; Cancellation Policy</a> and the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</span></label>
 
-    <button type="submit" id="submit-btn" class="btn btn-primary btn-block" disabled>Pay with PayFast</button>
-    <p class="pay-methods">Secure payment by PayFast:
-      <span class="pm">Capitec Pay</span><span class="pm">Instant EFT</span><span class="pm">Visa</span><span class="pm">Mastercard</span></p>
-    <p id="demo-note" class="demo-note" hidden>Demo mode: test payments only.</p>
+    <button type="submit" id="submit-btn" class="btn btn-primary btn-block" disabled>Pay with Paystack</button>
+    <p class="pay-methods">Secure payment by Paystack:
+      <span class="pm">Visa</span><span class="pm">Mastercard</span></p>
     <button type="button" id="wa-btn" class="btn btn-outline btn-block">Order on WhatsApp instead (pay on delivery or collection)</button>
     <p id="form-status" class="status" aria-live="polite"></p>
   </form>
 
-  <!-- Thank-you / payment waiting screen, shown after the customer returns from PayFast. order.js drives it (search "PAYMENT WAITING SCREEN"). -->
+  <!-- Thank-you / payment waiting screen, shown after the customer pays.  order.js drives it (search "PAYMENT WAITING SCREEN"). -->
   <div id="thanks" class="thanks" tabindex="-1" hidden>
     <h2 id="thanks-title">Thank you!</h2>
     <div class="confetti" id="confetti" aria-hidden="true"></div>
@@ -116,7 +116,7 @@
         <p class="pay-text" id="pay-text"></p>
       </div>
       <ol class="pay-steps">
-        <li class="done" data-step="paid"><span class="step-mark"></span><span class="step-label"><span class="vh step-state">Done: </span><span class="step-name">Payment made on PayFast</span></span></li>
+        <li class="done" data-step="paid"><span class="step-mark"></span><span class="step-label"><span class="vh step-state">Done: </span><span class="step-name">Payment made on Paystack</span></span></li>
         <li class="done" data-step="received"><span class="step-mark"></span><span class="step-label"><span class="vh step-state">Done: </span><span class="step-name">Order received by the shop</span></span></li>
         <li class="active" data-step="confirm" aria-current="step"><span class="step-mark"></span><span class="step-label"><span class="vh step-state">In progress: </span><span class="step-name">Shop confirming your payment</span></span></li>
         <li data-step="slip"><span class="step-mark"></span><span class="step-label"><span class="vh step-state">Not yet: </span><span class="step-name">Order slip ready to download</span></span></li>
@@ -176,6 +176,7 @@
 <script src="soldout.js"></script>
 <script src="settings.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+<script src="https://js.paystack.co/v1/inline.js" defer></script>
 <script src="order.js"></script>
 </body>
 </html>

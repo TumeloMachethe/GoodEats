@@ -1,7 +1,7 @@
 /* Good Eats: the order page (cart.html)
    Shows the cart, adds up the total, collects the customer's details and
    records the order (Firebase for the staff app, Make, Web3Forms), then sends the
-   customer to PayFast to pay. The slip unlocks only when payment is confirmed.
+   customer a Paystack payment window. The slip unlocks only when payment is confirmed.
    The Make webhook, delivery fee and WhatsApp number are in settings.js.
    The Web3Forms key is just below.
    The cart is saved in the browser (localStorage key "goodeats-cart"), the
@@ -39,7 +39,7 @@ let submitting = false;
 let lastOrder = null;                           // the order shown on the thank-you / slip screen
 let paidConfirmed = false;                      // true only when /paymentStatus/<ref> says "paid"
 let pollTimer = null;
-const PENDING_KEY = "goodeats-pending";         // the order we sent to PayFast (kept so the slip still works after PayFast brings the customer back)
+const PENDING_KEY = "goodeats-pending";         // the order being paid (kept so the slip and waiting screen still work after a reload)
 try { if ("scrollRestoration" in history) history.scrollRestoration = "manual"; } catch (e) {}
 
 function orderType() {
@@ -52,7 +52,8 @@ function isFreeArea() { return orderType() === "delivery" && FREE_DELIVERY_AREAS
 function deliveryCharge() {
   return cart.size > 0 && orderType() === "delivery" && !isFreeArea() && DELIVERY_FEE > 0 ? DELIVERY_FEE : 0;
 }
-function orderTotal() { return cartSubtotal() + deliveryCharge(); }
+function serviceCharge() { return cart.size > 0 && orderType() === "delivery" && SERVICE_FEE > 0 ? SERVICE_FEE : 0; }   // online delivery orders only
+function orderTotal() { return cartSubtotal() + deliveryCharge() + serviceCharge(); }
 
 function makeButton(text, label, onClick) {
   const b = document.createElement("button");
@@ -109,8 +110,10 @@ function renderCart() {
   $("fee-amount").textContent = free ? "FREE" : rand(fee);
   $("fee-amount").classList.toggle("fee-free", free);
   $("free-note").hidden = !free;
+  $("service-row").hidden = serviceCharge() === 0;
+  $("service-amount").textContent = rand(serviceCharge());
   $("total-amount").textContent = rand(orderTotal());
-  if (!submitting) $("submit-btn").textContent = empty ? "Pay with PayFast" : "Pay " + rand(orderTotal()) + " with PayFast";
+  if (!submitting) $("submit-btn").textContent = empty ? "Pay with Paystack" : "Pay " + rand(orderTotal()) + " with Paystack";
 
   document.querySelector(".site-header .btn-primary").textContent =
     empty ? "Order now" : "Order now (" + cartCount() + ")";
@@ -141,9 +144,6 @@ $("area").addEventListener("change", renderCart);
 
 /* ---------- Terms tick box: the pay button stays off until it is ticked ---------- */
 $("terms-ok").addEventListener("change", () => { $("submit-btn").disabled = !$("terms-ok").checked || submitting; });
-
-/* ---------- Demo banner (PayFast test mode) ---------- */
-if (PAYFAST_MODE !== "live") { $("demo-banner").hidden = false; $("demo-note").hidden = false; }
 
 /* ---------- Share my location ---------- */
 $("locate-btn").addEventListener("click", () => {
@@ -179,17 +179,19 @@ function buildPayload(opts) {
   const data = {
     name: $("name").value.trim(),
     phone: $("phone").value.trim(),
+    email: $("email").value.trim(),
     orderType: type,
     area: type === "delivery" ? area() : "",
     address: type === "delivery" ? area() + ": " + $("address").value.trim() : "",
     notes: $("notes").value.trim(),
     ref: opts.ref || "",
-    payment: opts.ref ? "PayFast (" + (PAYFAST_MODE === "live" ? "live" : "SANDBOX TEST") + "), awaiting payment check" : "Pay on delivery or collection (WhatsApp order)",
+    payment: opts.ref ? "Paystack, awaiting payment check" : "Pay on delivery or collection (WhatsApp order)",
     location: type === "delivery" ? geo : { lat: null, lng: null, mapsLink: "" },
     items,
     subtotal: cartSubtotal(),
     deliveryFee: deliveryCharge(),
-    total: orderTotal(),
+    serviceFee: opts.ref ? serviceCharge() : 0,            // the service fee is for online payment only, not WhatsApp orders
+    total: opts.ref ? orderTotal() : cartSubtotal() + deliveryCharge(),
     submittedAt: new Date().toISOString(),
   };
   const lines = items.map((i) => "- " + i.qty + " x " + i.name + " = " + rand(i.price * i.qty));
@@ -197,6 +199,7 @@ function buildPayload(opts) {
     "New Good Eats order",
     "Name: " + data.name,
     "Phone: " + data.phone,
+    data.email ? "Email: " + data.email : "",
     data.ref ? "Ref: " + data.ref : "",
     "Payment: " + data.payment,
     "Type: " + data.orderType,
@@ -206,6 +209,7 @@ function buildPayload(opts) {
     "Items:",
     ...lines,
     data.deliveryFee ? "Delivery: " + rand(data.deliveryFee) : (data.orderType === "delivery" ? "Delivery: FREE" : ""),
+    data.serviceFee ? "Service fee: " + rand(data.serviceFee) : "",
     "Total: " + rand(data.total),
     data.notes ? "Notes: " + data.notes : "",
   ].filter((l, idx, arr) => l !== "" || arr[idx - 1] !== "").join("\n");
@@ -218,6 +222,7 @@ function validate(needTerms) {
   if (soldProblem) return soldProblem;
   if (!$("name").value.trim()) return "Please enter your name.";
   if ($("phone").value.replace(/\D/g, "").length < 10) return "Please enter a phone number with 10 digits.";
+  if (needTerms && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test($("email").value.trim())) return "Please enter a valid email address. Paystack needs it for your payment receipt.";
   if (orderType() === "delivery" && !area()) return "Please choose your delivery area.";
   if (orderType() === "delivery" && !$("address").value.trim()) return "Please enter your delivery address.";
   if (needTerms && !$("terms-ok").checked) return "Please tick the box to accept the terms and policies.";
@@ -268,7 +273,7 @@ async function checkPaid(ref) {
 }
 /* ##################################################################
    >>>>>>>>>>>>>>>>>>>>>>>>  PAYMENT WAITING SCREEN  <<<<<<<<<<<<<<<<<
-   What the customer sees after paying on PayFast.
+   What the customer sees after paying on Paystack.
    - A calm animation and four plain steps. No promise of how long it takes: you confirm payments by hand.
    - After PAY_WAIT_SECONDS (settings.js, 60) without a confirmation, a pop-up asks them to message the shop on
      WhatsApp (pre-written message with their order reference). It shows once; after that the same button
@@ -445,43 +450,35 @@ function newRef() {
   return "GE-" + t.slice(0, 4) + "-" + t.slice(4, 8) + "-" + t.slice(8, 12);
 }
 
-/* ---------- PayFast ---------- */
-/* The ONE place that differs between test and live. Sandbox: build the fields here with PayFast's public
-   test merchant. Live: ask the Cloud Function, which adds the merchant key and the signature (never in this
-   website's code) and works out the amount itself. Everything else below stays the same. */
-async function getPayfastFields(p) {
-  if (PAYFAST_MODE === "live") {
-    const r = await fetch(PAYFAST_START_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ref: p.ref }) });
-    if (!r.ok) throw new Error("Payment start answered " + r.status);
-    const j = await r.json();
-    return { action: j.action || PAYFAST_LIVE_URL, fields: j.fields };
-  }
-  const back = location.href.split("#")[0].split("?")[0];
-  const fields = Object.assign({}, PAYFAST_SANDBOX_MERCHANT, {
-    return_url: back + "?status=return&ref=" + encodeURIComponent(p.ref),
-    cancel_url: back + "?status=cancel",
-    name_first: p.name.split(" ")[0].slice(0, 100),
-    m_payment_id: p.ref,
-    amount: Number(p.total).toFixed(2),
-    item_name: "Good Eats order " + p.ref,
+/* ---------- Paystack popup ---------- */
+/* Opens Paystack's payment window over this page (the customer never leaves the site). Only the PUBLIC key is
+   used. The popup's "success" comes from the customer's browser, so it is NOT proof of payment: it only moves
+   the customer to the waiting screen. The slip unlocks only when the shop writes "paid" in Firebase. */
+function openPaystack(p, onSuccess, onClose) {
+  if (!window.PaystackPop) throw new Error("Paystack script not loaded");
+  const handler = window.PaystackPop.setup({
+    key: PAYSTACK_PUBLIC_KEY,
+    email: p.email,
+    amount: Math.round(Number(p.total) * 100),     // cents
+    currency: PAYSTACK_CURRENCY,
+    ref: p.ref,                                    // same reference as the order, so you can match it in the dashboard
+    metadata: { custom_fields: [
+      { display_name: "Customer", variable_name: "customer", value: p.name },
+      { display_name: "Phone", variable_name: "phone", value: p.phone },
+      { display_name: "Order type", variable_name: "order_type", value: p.orderType },
+    ] },
+    callback: function () { onSuccess(); },
+    onClose: function () { onClose(); },
   });
-  if (PAYFAST_NOTIFY_URL) fields.notify_url = PAYFAST_NOTIFY_URL;
-  return { action: PAYFAST_SANDBOX_URL, fields };
-}
-function postToPayfast(job) {
-  const f = document.createElement("form");
-  f.method = "post"; f.action = job.action; f.hidden = true;
-  Object.keys(job.fields).forEach((k) => { const i = document.createElement("input"); i.type = "hidden"; i.name = k; i.value = job.fields[k]; f.appendChild(i); });
-  document.body.appendChild(f);
-  f.submit();
+  handler.openIframe();
 }
 
 /* ##################################################################
    >>>>>>>>>>>>>>>>>>>>>>>>>>  FORM SUBMIT  <<<<<<<<<<<<<<<<<<<<<<<<<<
-   Runs when the customer taps "Pay with PayFast".
+   Runs when the customer taps "Pay with Paystack".
    1. checks the form (including the terms tick box)
    2. records the order as "awaiting payment check" in Firebase (staff app), Make and Web3Forms
-   3. sends the customer to PayFast's own secure page to pay
+   3. opens the Paystack payment window over this page
    Card or bank details never touch this website.
    ################################################################## */
 $("order-form").addEventListener("submit", async (event) => {
@@ -502,7 +499,7 @@ $("order-form").addEventListener("submit", async (event) => {
 
   submitting = true;
   button.disabled = true;
-  button.textContent = "Taking you to PayFast...";
+  button.textContent = "Opening payment...";
   status.className = "status";
   status.textContent = "";
   const ref = newRef();
@@ -515,6 +512,7 @@ $("order-form").addEventListener("submit", async (event) => {
     from_name: "Good Eats website",
     name: payload.name,
     phone: payload.phone,
+    email: payload.email,
     order_type: payload.orderType,
     address: payload.address,
     map_link: payload.location.mapsLink,
@@ -538,7 +536,7 @@ $("order-form").addEventListener("submit", async (event) => {
       phone: payload.phone.slice(0, 29),
       orderType: payload.orderType,
       address: payload.address.slice(0, 299),
-      notes: ("AWAITING PAYMENT CHECK (PayFast" + (PAYFAST_MODE === "live" ? "" : " SANDBOX TEST") + ") Ref " + ref + ". " + payload.notes).slice(0, 499),
+      notes: ("AWAITING PAYMENT CHECK (Paystack) Ref " + ref + ". " + payload.notes).slice(0, 499),
       mapsLink: String(payload.location.mapsLink || "").slice(0, 299),
       deliveryFee: Number(payload.deliveryFee) || 0,
       total: Number(payload.total) || 0,
@@ -548,7 +546,7 @@ $("order-form").addEventListener("submit", async (event) => {
     };
     // Extra fields for the staff app's "awaiting payment check" badge. If the database rules do not
     // allow them yet (401), save the order without them so no order is ever lost.
-    const rich = Object.assign({}, base, { ref, payment: "payfast", payStatus: "awaiting_check" });
+    const rich = Object.assign({}, base, { ref, payment: "paystack", payStatus: "awaiting_check", email: payload.email.slice(0, 99), serviceFee: Number(payload.serviceFee) || 0 });
     let r = await fetch(FIREBASE_DB_URL + "/onlineOrders.json", { method: "POST", body: JSON.stringify(rich) });
     if (!r.ok && r.status === 401) r = await fetch(FIREBASE_DB_URL + "/onlineOrders.json", { method: "POST", body: JSON.stringify(base) });
     if (!r.ok) throw new Error("Firebase answered " + r.status + ": " + (await r.text()).slice(0, 200));
@@ -572,10 +570,21 @@ $("order-form").addEventListener("submit", async (event) => {
     results.forEach((r) => { if (r.status === "rejected") console.error(r.reason); });
     if (results[0].status !== "fulfilled" && !results.some((r) => r.status === "fulfilled")) throw new Error("Order not recorded");
 
-    // Step 2: remember the order (for the slip), then go to PayFast.
+    // Step 2: remember the order (for the slip), then open the Paystack popup over the page.
     try { localStorage.setItem(PENDING_KEY, JSON.stringify(payload)); } catch (e) {}
-    const job = await getPayfastFields(payload);
-    postToPayfast(job);   // the browser leaves the site here
+    openPaystack(payload,
+      () => {   // popup says "paid": only move to the waiting screen. The slip unlocks when the shop confirms.
+        submitting = false;
+        openReceiptFor({ ref: payload.ref, startedAt: Date.now(), paid: false, popupShown: false, order: payload });
+      },
+      () => {   // popup closed without paying
+        if (thanksShowing) return;
+        submitting = false;
+        status.className = "status error";
+        status.textContent = "Payment was cancelled, so your order has not been paid. Your cart is still here if you want to try again.";
+        button.disabled = !$("terms-ok").checked;
+        renderCart();
+      });
   } catch (err) {
     console.error(err);
     status.className = "status error";
@@ -586,11 +595,11 @@ $("order-form").addEventListener("submit", async (event) => {
   }
 });
 
-/* ---------- Coming back from PayFast ---------- */
+/* ---------- Coming back to an order ---------- */
 /* Show the receipt screen for a saved or returning order. "mine" is the order we kept on this device (it is
    missing if the customer came back in another browser: then they only see the reference, as before). */
 function openReceiptFor(rec) {
-  cart.clear();                        // the order is with PayFast now
+  cart.clear();                        // the order is with the shop now
   thanksShowing = true;
   renderCart();
   const mine = rec.order && rec.order.ref === rec.ref ? rec.order : null;
@@ -600,27 +609,8 @@ function openReceiptFor(rec) {
   if (rec.paid) { paintWaiting(false); unlockSlip(); } else beginWaiting(rec);
 }
 
+/* Opened again (reload, closed the tab, came back later): bring the order back. */
 (function () {
-  const qs = new URLSearchParams(location.search);
-  const st = qs.get("status"), ref = qs.get("ref");
-  if (st === "cancel") {
-    const status = $("form-status");
-    status.className = "status error";
-    status.textContent = "Payment was cancelled, so your order has not been paid. Your cart is still here if you want to try again.";
-    return;
-  }
-  if (st === "return" && ref) {
-    let pending = null;
-    try { pending = JSON.parse(localStorage.getItem(PENDING_KEY) || "null"); } catch (e) {}
-    const mine = pending && pending.ref === ref ? pending : null;
-    // A reload of this page keeps the same record (and the same start time), so the minute is not restarted.
-    const saved = loadActive();
-    const rec = saved && saved.ref === ref ? saved : { ref, startedAt: Date.now(), paid: false, popupShown: false, order: mine };
-    if (!rec.order && mine) rec.order = mine;
-    openReceiptFor(rec);
-    return;
-  }
-  /* Opened again without the PayFast address (closed the tab, came back later): bring the order back. */
   const rec = loadActive();
   if (!rec) return;
   if (cart.size > 0) {                 // already building a new order: do not take over the page, just mention it
@@ -656,7 +646,7 @@ $("slip-btn").addEventListener("click", async () => {
   const p = lastOrder;
   if (!paidConfirmed) return;            // the slip is only for confirmed payments
   if (!p || !window.jspdf) { alert("The slip could not be made. Please take a screenshot of this screen instead."); return; }
-  const lines = p.items.length, h = 165 + lines * 7 + (p.address ? 14 : 0);
+  const lines = p.items.length, h = 169 + lines * 7 + (p.address ? 14 : 0);
   const doc = new window.jspdf.jsPDF({ unit: "mm", format: [80, h] });
   const mid = 40; let y = 8;
   const logo = await logoData();
@@ -681,13 +671,14 @@ $("slip-btn").addEventListener("click", async () => {
   dash();
   doc.text("Subtotal", 6, y); doc.text(rand(p.subtotal), 74, y, { align: "right" }); y += 4;
   if (p.deliveryFee) { doc.text("Delivery", 6, y); doc.text(rand(p.deliveryFee), 74, y, { align: "right" }); y += 4; }
+  if (p.serviceFee) { doc.text("Service fee", 6, y); doc.text(rand(p.serviceFee), 74, y, { align: "right" }); y += 4; }
   doc.setFont("courier", "bold"); doc.setFontSize(11);
   doc.text("TOTAL", 6, y + 2); doc.text(rand(p.total), 74, y + 2, { align: "right" }); y += 8;
   doc.setFont("courier", "normal"); doc.setFontSize(8);
   if (p.address) { const a = doc.splitTextToSize("Address: " + p.address, 68); doc.text(a, 6, y); y += 4 * a.length + 2; }
   if (p.notes) { const n = doc.splitTextToSize("Notes: " + p.notes, 68); doc.text(n, 6, y); y += 4 * n.length + 2; }
   dash();
-  doc.setFont("courier", "bold"); doc.setFontSize(12); doc.text("PAID" + (PAYFAST_MODE === "live" ? "" : " (TEST)"), mid, y + 1, { align: "center" }); y += 7;
+  doc.setFont("courier", "bold"); doc.setFontSize(12); doc.text("PAID", mid, y + 1, { align: "center" }); y += 7;
   doc.setFont("courier", "normal"); doc.setFontSize(8);
   doc.text("Thank you for ordering!", mid, y, { align: "center" }); y += 4;
   doc.text("Good food, good mood.", mid, y, { align: "center" });

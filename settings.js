@@ -16,6 +16,7 @@ const OPENING_HOURS = "Mon to Fri, 7:30am to 5pm";     // Example: "Mon to Sat, 
                                                        // Closed on Saturday and Sunday (confirmed by the owner).
                                                        // The same line is written in privacy.html, terms.html and refunds.html ("Opening hours:"); change it there too.
 const DELIVERY_FEE = 18;          // In rand. Charged for areas that are NOT in FREE_DELIVERY_AREAS. 0 = no delivery fee line.
+const SERVICE_FEE = 10;           // In rand. Flat service fee on ONLINE DELIVERY orders only (not collection, not WhatsApp orders). 0 = no service fee.
 const FREE_DELIVERY_AREAS = ["Central", "Town"];   // Delivery is free when the customer picks one of these.
 const DELIVERY_AREAS = ["Central", "Town", "Other area"];   // The choices in the "Delivery area" dropdown.
 const WHATSAPP_NUMBER = "083 941 5837";
@@ -33,24 +34,18 @@ const FEATURABLE_API_URL = "https://api.featurable.com/v1/widgets/469e3e24-c258-
 
 /* ##################################################################
    >>>>>>>>>>>>>>>>>>>>>>>>  PAYMENT WAITING SCREEN  <<<<<<<<<<<<<<<<<
-   After paying on PayFast the customer sees "Checking your payment". After this many seconds without a
+   After paying on Paystack the customer sees "Checking your payment". After this many seconds without a
    confirmation, a pop-up asks them to message the shop on WhatsApp. The page keeps checking in the background.
    This is only when the pop-up appears; it is NOT a promise of how long confirmation takes.
    ################################################################## */
 const PAY_WAIT_SECONDS = 60;
 
 /* ##################################################################
-   >>>>>>>>>>>>>>>>>>>>>>>>  PAYFAST  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-   "sandbox" = TEST MODE (demo). No real money moves. Uses PayFast's public
-   test merchant, so there is no secret in this file.
-   "live"    = real payments. ONLY switch after PayFast has verified the account
-               AND the Cloud Function is deployed (see CHANGES.md). In live mode the
-               merchant key and signature are added by the Cloud Function and are
-               never in this website's code.
+   >>>>>>>>>>>>>>>>>>>>>>>>  PAYSTACK  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+   The PUBLIC key (starts with pk_live) is designed to sit in website code: it can only open a payment
+   window. NEVER put the secret key (sk_live) in this file or anywhere on the website.
+   Payments are confirmed by hand: check the payment in your Paystack dashboard, then write "paid" at
+   paymentStatus/<order ref> in Firebase (see CHANGES.md).
    ################################################################## */
-const PAYFAST_MODE = "sandbox";
-const PAYFAST_SANDBOX_URL = "https://sandbox.payfast.co.za/eng/process";
-const PAYFAST_LIVE_URL = "https://www.payfast.co.za/eng/process";
-const PAYFAST_SANDBOX_MERCHANT = { merchant_id: "10000100", merchant_key: "46f0cd694581a" };   // PayFast's public test account
-const PAYFAST_START_URL = "";    // live only: Cloud Function that returns the signed payment fields
-const PAYFAST_NOTIFY_URL = "";   // live only: Cloud Function that PayFast calls to confirm payment
+const PAYSTACK_PUBLIC_KEY = "pk_live_1e23313d07c06dfe4f7a387cf9e54186aa688a2e";
+const PAYSTACK_CURRENCY = "ZAR";
